@@ -45,6 +45,9 @@
   <ItemGroup>
     <Compile Include="AbstractFactory.cs" />
     <Compile Include="Factories.cs" />
+    <Compile Include="ImportType.cs" />
+    <Compile Include="ProcessType.cs" />
+    <Compile Include="RouteType.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="ProcessCreationService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

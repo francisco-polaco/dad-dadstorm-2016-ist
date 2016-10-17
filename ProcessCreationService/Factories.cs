@@ -19,7 +19,6 @@
         }
     }
 
-
     public class ProcessingFactory : AbstractFactory
     {
         public override Import getImport()
