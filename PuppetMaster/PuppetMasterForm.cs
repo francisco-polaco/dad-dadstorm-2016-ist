@@ -10,10 +10,13 @@ using System.Windows.Forms;
 
 namespace PuppetMaster
 {
-    public partial class Form1 : Form
+    public partial class PuppetMasterForm : Form
     {
-        public Form1()
+        private PuppetMaster mPuppetForm;
+
+        public PuppetMasterForm()
         {
+            mPuppetForm = new PuppetMaster(null);
             InitializeComponent();
         }
     }
