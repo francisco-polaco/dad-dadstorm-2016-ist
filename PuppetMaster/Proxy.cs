@@ -19,16 +19,16 @@ namespace PuppetMaster
         }
     }
 
-    class SlaveProxy:  Slave
+    class SlaveProxy:  ISlave
     {
         private string mUrl;
-        private Slave mRemoteObj;
+        private ISlave mRemoteObj;
 
         SlaveProxy(string url)
         {
             mUrl = url;
-            mRemoteObj = (Slave)Activator.GetObject(
-                typeof(Slave),
+            mRemoteObj = (ISlave)Activator.GetObject(
+                typeof(ISlave),
                 url);
         }
 

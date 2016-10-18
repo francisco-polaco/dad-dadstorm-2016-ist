@@ -10,7 +10,7 @@ namespace CommonTypes
     //{
     //}
 
-    public interface LogUpdate
+    public interface ILogUpdate
     {
         void Update(string log);
     }
@@ -25,13 +25,13 @@ namespace CommonTypes
         void Unfreeze(string url);
     }
 
-    public interface Slave
+    public interface ISlave
     {
         void Dispatch(string a);
         void Update(string s);
     }
 
-    public interface SlaveLaunch
+    public interface ISlaveLaunch
     {
         void Launch(string input);
     }

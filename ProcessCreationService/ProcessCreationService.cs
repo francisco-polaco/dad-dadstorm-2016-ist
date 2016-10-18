@@ -18,7 +18,7 @@ namespace ProcessCreationService
 
     }
 
-    public class ProcessCreationService : MarshalByRefObject, SlaveLaunch
+    public class ProcessCreationService : MarshalByRefObject, ISlaveLaunch
     {
 
         public ProcessCreationService(string name)

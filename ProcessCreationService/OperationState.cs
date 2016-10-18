@@ -2,7 +2,7 @@
 
 namespace ProcessCreationService
 {
-    public class FrozenState : CommonTypes.Slave
+    public class FrozenState : CommonTypes.ISlave
     {
         public void Dispatch(string input)
         {
@@ -15,7 +15,7 @@ namespace ProcessCreationService
         }
     }
 
-    public class UnfrozenState : CommonTypes.Slave
+    public class UnfrozenState : CommonTypes.ISlave
     {
         public void Dispatch(string input)
         {

@@ -4,15 +4,15 @@ using System.Runtime.Remoting.Channels;
 
 namespace ProcessCreationService
 {
-    public class Slave : CommonTypes.Slave
+    public class Slave : CommonTypes.ISlave
     {
-        private CommonTypes.Slave state = new UnfrozenState();
+        private CommonTypes.ISlave state = new UnfrozenState();
         private Import importObj;
         private Route routeObj;
         private Process processObj;
-        private CommonTypes.Slave slaveProxy;
+        private CommonTypes.ISlave slaveProxy;
 
-        public CommonTypes.Slave State
+        public CommonTypes.ISlave State
         {
             get { return state; }
             set { state = value; }
@@ -30,8 +30,8 @@ namespace ProcessCreationService
             TcpChannel channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, false);
 
-            slaveProxy = (CommonTypes.Slave)Activator.GetObject(
-                typeof(CommonTypes.Slave),
+            slaveProxy = (CommonTypes.ISlave)Activator.GetObject(
+                typeof(CommonTypes.ISlave),
                 "tcp://localhost:10001/PuppetMaster");
         }
 
