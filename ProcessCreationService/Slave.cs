@@ -1,5 +1,4 @@
 ﻿using System;
-using CommonTypes;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 
@@ -31,7 +30,7 @@ namespace ProcessCreationService
             TcpChannel channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, false);
 
-            CommonTypes.Slave slaveProxy = (CommonTypes.Slave)Activator.GetObject(
+            slaveProxy = (CommonTypes.Slave)Activator.GetObject(
                 typeof(CommonTypes.Slave),
                 "tcp://localhost:10001/PuppetMaster");
         }
