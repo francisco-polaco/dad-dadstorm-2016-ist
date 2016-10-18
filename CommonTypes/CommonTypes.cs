@@ -30,4 +30,9 @@ namespace CommonTypes
         void Dispatch(string a);
         void Update(string s);
     }
+
+    public interface SlaveLaunch
+    {
+        void Launch(string input);
+    }
 }

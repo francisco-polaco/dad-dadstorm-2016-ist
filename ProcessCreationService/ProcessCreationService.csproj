@@ -47,11 +47,13 @@
     <Compile Include="AbstractFactory.cs" />
     <Compile Include="Factories.cs" />
     <Compile Include="ImportType.cs" />
+    <Compile Include="OperationState.cs" />
     <Compile Include="ProcessType.cs" />
     <Compile Include="RouteType.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="ProcessCreationService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Slave.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
