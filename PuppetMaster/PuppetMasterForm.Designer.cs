@@ -1,6 +1,6 @@
 ﻿namespace PuppetMaster
 {
-    partial class Form1
+    partial class PuppetMasterForm
     {
         /// <summary>
         /// Required designer variable.
