@@ -10,7 +10,7 @@ namespace CommonTypes
     //{
     //}
 
-    interface LogUpdate
+    public interface LogUpdate
     {
         void Update(string log);
     }

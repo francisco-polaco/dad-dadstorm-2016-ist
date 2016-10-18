@@ -30,5 +30,10 @@ namespace PuppetMaster
             //parse
             //launch
         }
+
+        internal void Exit()
+        {
+            mLogger.Exit();
+        }
     }
 }

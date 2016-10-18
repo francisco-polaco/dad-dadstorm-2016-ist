@@ -12,12 +12,22 @@ namespace PuppetMaster
 {
     public partial class PuppetMasterForm : Form
     {
-        private PuppetMaster mPuppetForm;
+        private PuppetMaster mPuppetMaster;
+        private FullLog mLog = new FullLog();
 
         public PuppetMasterForm()
         {
-            mPuppetForm = new PuppetMaster(null);
+            mPuppetMaster = new PuppetMaster(null);
             InitializeComponent();
+            mLog.Update("batata");
+        }
+
+        private void PuppetMasterForm_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Determine if text has changed in the textbox by comparing to original text.
+            mPuppetMaster.Exit();
+            mLog.Exit();
+            e.Cancel = true;
         }
     }
 }
