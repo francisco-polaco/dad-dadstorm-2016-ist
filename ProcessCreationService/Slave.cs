@@ -5,7 +5,7 @@ using System.Runtime.Remoting.Channels;
 
 namespace ProcessCreationService
 {
-    public class Slave : ISlave, RemoteCmdInterface
+    public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface
     {
         private ISlave state = new UnfrozenState();
         private Import importObj;
