@@ -1,18 +1,19 @@
 ﻿using System;
+using CommonTypes;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 
 namespace ProcessCreationService
 {
-    public class Slave : CommonTypes.ISlave
+    public class Slave : ISlave, RemoteCmdInterface
     {
-        private CommonTypes.ISlave state = new UnfrozenState();
+        private ISlave state = new UnfrozenState();
         private Import importObj;
         private Route routeObj;
         private Process processObj;
-        private CommonTypes.ISlave slaveProxy;
+        private ISlave slaveProxy;
 
-        public CommonTypes.ISlave State
+        public ISlave State
         {
             get { return state; }
             set { state = value; }
@@ -30,8 +31,8 @@ namespace ProcessCreationService
             TcpChannel channel = new TcpChannel();
             ChannelServices.RegisterChannel(channel, false);
 
-            slaveProxy = (CommonTypes.ISlave)Activator.GetObject(
-                typeof(CommonTypes.ISlave),
+            slaveProxy = (ISlave)Activator.GetObject(
+                typeof(ISlave),
                 "tcp://localhost:10001/PuppetMaster");
         }
 
@@ -44,6 +45,36 @@ namespace ProcessCreationService
         {
             if (slaveProxy != null)
                 state.Update(toUpdate);
+        }
+
+        public void Start(int opid)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Interval(int opid, int ms)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Status()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Crash(string url)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Freeze(string url)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Unfreeze(string url)
+        {
+            throw new NotImplementedException();
         }
     }
 }

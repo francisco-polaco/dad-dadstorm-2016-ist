@@ -6,16 +6,12 @@ using System.Threading.Tasks;
 
 namespace CommonTypes
 {
-    //public class CommonTypes
-    //{
-    //}
-
     public interface ILogUpdate
     {
         void Update(string log);
     }
 
-    interface RemoteCmdInterface
+    public interface RemoteCmdInterface
     {
         void Start(int opid);
         void Interval(int opid, int ms);
