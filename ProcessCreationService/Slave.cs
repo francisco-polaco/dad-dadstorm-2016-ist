@@ -1,5 +1,6 @@
 ﻿using System;
 using CommonTypes;
+using System.Collections;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 
@@ -7,10 +8,10 @@ namespace ProcessCreationService
 {
     public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface
     {
-        private ISlave state = new UnfrozenState();
-        private Import importObj;
-        private Route routeObj;
-        private Process processObj;
+        private ISlave state;
+        private FrozenState frozenState;
+        private UnfrozenState unfrozenState;
+
         private ISlave slaveProxy;
 
         public ISlave State
@@ -21,9 +22,9 @@ namespace ProcessCreationService
 
         public Slave(Import importObj, Route routeObj, Process processObj)
         {
-            this.importObj = importObj;
-            this.routeObj = routeObj;
-            this.processObj = processObj;
+            frozenState = new FrozenState(importObj, routeObj, processObj);
+            unfrozenState = new UnfrozenState(importObj, routeObj, processObj);
+            state = unfrozenState;
             init();
         }
 

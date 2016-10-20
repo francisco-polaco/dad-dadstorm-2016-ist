@@ -12,6 +12,6 @@
 
     public interface Process
     {
-        void Process(params object[] specs);
+        string Process(params object[] specs);
     }
 }
