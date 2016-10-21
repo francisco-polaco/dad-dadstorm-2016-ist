@@ -1,41 +1,68 @@
-﻿namespace ProcessCreationService
+﻿using System.Collections;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
+namespace ProcessCreationService
 {
     public class Uniq : Process
     {
-        /// <summary>
-        /// Emit the tuple again if field_number is unique
-        /// Not unique return empty string 
-        /// </summary>
-        /// <param name="specs"></param>
-        public string Process(params object[] specs)
+        private int fieldNumber;
+
+        public Uniq(string fieldNumber)
         {
-            string inputTuple = (string)specs[0];
-            string fieldNumber = (string)specs[1];
-            return !inputTuple.Contains(fieldNumber) ? inputTuple : string.Empty;
+            init(fieldNumber);
+        }
+
+        private void init(string fieldNumber)
+        {
+            int result;
+            if (int.TryParse(fieldNumber, out result))
+                this.fieldNumber = result;
+            // TO DO
+            // else : throw exception conversion not possible
+        }
+
+        public string Process(string input)
+        {
+            string[] content = input.Split(',');
+            // Corta o espaço vazio, visto que os fields estão separados por espaços
+            string needle = content[fieldNumber].Trim();
+            return Regex.Matches(input, needle).Count == 1 ? input : string.Empty;
         }
     }
 
     public class Count : Process
     {
-        public string Process(params object[] specs)
+        public string Process(string input)
         {
-            // TO DO
-            return string.Empty;
+            return input.Split(',').Length.ToString();
         }
     }
 
     public class Dup : Process
     {
-        public string Process(params object[] specs)
+        public string Process(string input)
         {
-            // TO DO
-            return string.Empty;
+            return input;
         }
     }
 
     public class Filter : Process
     {
-        public string Process(params object[] specs)
+        private string fieldNumber;
+        private string condition;
+        private string value;
+
+        public Filter(string fieldNumber, string condition, string value)
+        {
+            this.fieldNumber = fieldNumber;
+            this.condition = condition;
+            this.value = value;
+        }
+
+        public string Process(string input)
         {
             // TO DO
             return string.Empty;
@@ -44,7 +71,18 @@
 
     public class Custom : Process
     {
-        public string Process(params object[] specs)
+        private string dll;
+        private string invokeClass;
+        private string method;
+
+        public Custom(string dll, string invokeClass, string method)
+        {
+            this.dll = dll;
+            this.invokeClass = invokeClass;
+            this.method = method;
+        }
+
+        public string Process(string input)
         {
             // TO DO
             return string.Empty;

@@ -31,7 +31,13 @@ namespace ProcessCreationService
 
         public void Launch(string input)
         {
+            // Márcio quando tiveres a lançar um operador novo manda os inputs em string ex:
+            // operator spec UNIQ 1
+            // O 1 depois do Uniq manda em string
+            // Uniq un = new Uniq("1");
+           
             // TO DO
+
         }
     }
 }

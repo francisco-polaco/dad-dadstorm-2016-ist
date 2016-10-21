@@ -1,39 +1,38 @@
 ﻿using System;
-using CommonTypes;
 
 namespace ProcessCreationService
 {
-    public class FrozenState : State, ISlave
+    public class FrozenState : State
     {
         public FrozenState(Import importObj, Route routeObj, Process processObj) : 
             base(importObj, routeObj, processObj)
         {
         }
 
-        public void Dispatch(string input)
+        public override void Dispatch(string input)
         {
             throw new NotImplementedException();
         }
 
-        public void Update(string toUpdate)
+        public override void Update(string toUpdate)
         {
             throw new NotImplementedException();
         }
     }
 
-    public class UnfrozenState : State, ISlave
+    public class UnfrozenState : State
     {
         public UnfrozenState(Import importObj, Route routeObj, Process processObj)
             : base(importObj, routeObj, processObj)
         {
         }
 
-        public void Dispatch(string input)
+        public override void Dispatch(string input)
         {
             throw new NotImplementedException();
         }
 
-        public void Update(string toUpdate)
+        public override void Update(string toUpdate)
         {
             throw new NotImplementedException();
         }

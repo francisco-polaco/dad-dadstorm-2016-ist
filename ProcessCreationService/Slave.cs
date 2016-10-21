@@ -8,13 +8,12 @@ namespace ProcessCreationService
 {
     public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface
     {
-        private ISlave state;
+        private State state;
         private FrozenState frozenState;
         private UnfrozenState unfrozenState;
-
         private ISlave slaveProxy;
 
-        public ISlave State
+        public State State
         {
             get { return state; }
             set { state = value; }

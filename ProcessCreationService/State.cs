@@ -1,8 +1,9 @@
-﻿using System.Collections;
+﻿using CommonTypes;
+using System.Collections;
 
 namespace ProcessCreationService
 {
-    public abstract class State
+    public abstract class State : ISlave
     {
         private Import importObj;
         private Route routeObj;
@@ -44,5 +45,8 @@ namespace ProcessCreationService
             return output;
         }
 
+        public abstract void Dispatch(string input);
+
+        public abstract void Update(string toUpdate);
     }
 }

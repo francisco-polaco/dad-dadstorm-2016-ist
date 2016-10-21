@@ -2,7 +2,7 @@
 {
     public class Primary : Route
     {
-        public void Route(params object[] specs)
+        public void Route(string input)
         {
             // TO DO
         }
@@ -10,7 +10,7 @@
 
     public class Random : Route
     {
-        public void Route(params object[] specs)
+        public void Route(string input)
         {
             // TO DO
         }
@@ -18,7 +18,7 @@
 
     public class Hashing : Route
     {
-        public void Route(params object[] specs)
+        public void Route(string input)
         {
             // TO DO
         }

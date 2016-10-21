@@ -1,17 +1,19 @@
-﻿namespace ProcessCreationService
+﻿using System.Collections;
+
+namespace ProcessCreationService
 {
     public interface Import
     {
-        void Import(params object[] specs);
+        void Import(string input);
     }
 
     public interface Route
     {
-        void Route(params object[] specs);
+        void Route(string input);
     }
 
     public interface Process
     {
-        string Process(params object[] specs);
+        string Process(string input);
     }
 }
