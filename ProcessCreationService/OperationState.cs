@@ -4,36 +4,43 @@ namespace ProcessCreationService
 {
     public class FrozenState : State
     {
-        public FrozenState(Import importObj, Route routeObj, Process processObj) : 
-            base(importObj, routeObj, processObj)
+        public FrozenState(Slave slave) : 
+            base(slave)
         {
         }
 
         public override void Dispatch(string input)
         {
+            // TO DO
             throw new NotImplementedException();
         }
 
         public override void Update(string toUpdate)
         {
+            SlaveObj.SlaveProxy.Update(toUpdate);
             throw new NotImplementedException();
         }
     }
 
     public class UnfrozenState : State
     {
-        public UnfrozenState(Import importObj, Route routeObj, Process processObj)
-            : base(importObj, routeObj, processObj)
+        public UnfrozenState(Slave slave)
+            : base(slave)
         {
         }
 
         public override void Dispatch(string input)
         {
+            // Missing check for returns
+            SlaveObj.ImportObj.Import(input);
+            SlaveObj.RouteObj.Route(input);
+            SlaveObj.ProcessObj.Process(input);
             throw new NotImplementedException();
         }
 
         public override void Update(string toUpdate)
         {
+            SlaveObj.SlaveProxy.Update(toUpdate);
             throw new NotImplementedException();
         }
     }

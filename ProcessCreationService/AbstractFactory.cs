@@ -2,8 +2,8 @@
 {
     public abstract class AbstractFactory
     {
-        public abstract Import GetImport();
-        public abstract Route GetRouting();
-        public abstract Process GetProcessing();
+        public abstract Import GetImport(string[] specs);
+        public abstract Route GetRouting(string[] specs);
+        public abstract Process GetProcessing(string[] specs);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace ProcessCreationService
@@ -9,27 +10,13 @@ namespace ProcessCreationService
 
         public Uniq(string fieldNumber)
         {
-            init(fieldNumber);
-        }
-
-        private void init(string fieldNumber)
-        {
-            int result;
-            if (int.TryParse(fieldNumber, out result))
-                this.fieldNumber = result;
-            // TO DO
-            // else : throw exception conversion not possible
+            this.fieldNumber = int.Parse(fieldNumber);
         }
 
         public string Process(string input)
         {
             string[] content = input.Split(',');
-            // TO DO
-            // Exception custom?
-            if (fieldNumber >= content.Length)
-                throw new IndexOutOfRangeException();
-
-            // Corta o espaço vazio, visto que os fields estão separados por espaços
+            // Since fields in tuple are separated by white spaces, trim them
             string needle = content[fieldNumber].Trim();
             return Regex.Matches(input, needle).Count == 1 ? input : string.Empty;
         }
@@ -53,21 +40,27 @@ namespace ProcessCreationService
 
     public class Filter : Process
     {
-        private string fieldNumber;
+        private int fieldNumber;
         private string condition;
         private string value;
 
         public Filter(string fieldNumber, string condition, string value)
         {
-            this.fieldNumber = fieldNumber;
+            this.fieldNumber = int.Parse(fieldNumber);
             this.condition = condition;
             this.value = value;
         }
 
         public string Process(string input)
         {
-            // TO DO
-            return string.Empty;
+            string[] content = input.Split(',');
+            switch (condition)
+            {
+                case ">": return content[fieldNumber].Trim().Length > value.Length ? input : string.Empty;
+                case "<": return content[fieldNumber].Trim().Length < value.Length ? input : string.Empty;
+                case "=": return content[fieldNumber].Trim().Length == value.Length ? input : string.Empty;
+                default: return string.Empty;
+            }
         }
     }
 
@@ -86,8 +79,17 @@ namespace ProcessCreationService
 
         public string Process(string input)
         {
-            // TO DO
-            return string.Empty;
+            string[] content = input.Split(',');
+            for (int i = 0; i < content.Length; i++)
+                content[i] = content[i].Trim();
+            
+            // C# Reflection 
+            var importDLL = Assembly.LoadFile(dll);
+            Type type = importDLL.GetType(invokeClass);
+            object instance = Activator.CreateInstance(type);
+            object output  = type.InvokeMember(method, BindingFlags.InvokeMethod, null, instance, content);
+
+            return output == null ? string.Empty : (string)output;
         }
     }
 }
