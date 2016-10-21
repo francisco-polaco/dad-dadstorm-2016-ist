@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System;
-using System.Linq;
-using System.Collections.Generic;
+﻿using System;
 using System.Text.RegularExpressions;
 
 namespace ProcessCreationService
@@ -27,6 +24,11 @@ namespace ProcessCreationService
         public string Process(string input)
         {
             string[] content = input.Split(',');
+            // TO DO
+            // Exception custom?
+            if (fieldNumber >= content.Length)
+                throw new IndexOutOfRangeException();
+
             // Corta o espaço vazio, visto que os fields estão separados por espaços
             string needle = content[fieldNumber].Trim();
             return Regex.Matches(input, needle).Count == 1 ? input : string.Empty;
@@ -37,7 +39,7 @@ namespace ProcessCreationService
     {
         public string Process(string input)
         {
-            return input.Split(',').Length.ToString();
+            return !input.Equals(string.Empty) ? input.Split(',').Length.ToString() : "0";
         }
     }
 
