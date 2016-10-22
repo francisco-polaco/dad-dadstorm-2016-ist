@@ -17,7 +17,6 @@ namespace Slave
 
         public override void Update(string toUpdate)
         {
-            SlaveObj.SlaveProxy.Update(toUpdate);
             throw new NotImplementedException();
         }
     }
@@ -31,16 +30,12 @@ namespace Slave
 
         public override void Dispatch(string input)
         {
-            // Missing check for returns
-            SlaveObj.ImportObj.Import(input);
-            SlaveObj.RouteObj.Route(input);
-            SlaveObj.ProcessObj.Process(input);
+            // TO DO
             throw new NotImplementedException();
         }
 
         public override void Update(string toUpdate)
         {
-            SlaveObj.SlaveProxy.Update(toUpdate);
             throw new NotImplementedException();
         }
     }
