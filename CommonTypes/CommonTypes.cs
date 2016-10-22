@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CommonTypes
+﻿namespace CommonTypes
 {
     public interface ILogUpdate
     {
@@ -24,10 +18,9 @@ namespace CommonTypes
     public interface ISlave
     {
         void Dispatch(string a);
-        void Update(string s);
     }
 
-    public interface ISlaveLaunch
+    public interface IPCSSlaveLaunch
     {
         void Launch(string input);
     }
@@ -36,6 +29,7 @@ namespace CommonTypes
     {
         private int opID;
         private string url;
+        private ISlave proxy;
 
         public int OpID
         {
@@ -49,10 +43,17 @@ namespace CommonTypes
             set { url = value; }
         }
 
-        public Replica(int opID, string url)
+        public ISlave Proxy
+        {
+            get { return proxy; }
+            set { proxy = value; }
+        }
+
+        public Replica(int opID, string url, ISlave proxy)
         {
             this.opID = opID;
             this.url = url;
+            this.proxy = proxy;
         }
     }
 

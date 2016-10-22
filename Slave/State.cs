@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Slave
 {
-    public abstract class State : ISlave
+    public abstract class State : ISlave, ILogUpdate
     {
         private Slave slaveObj;
 

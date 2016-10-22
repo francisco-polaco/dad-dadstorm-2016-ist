@@ -15,14 +15,14 @@ namespace Slave
         }
     }
 
-    public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface
+    public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface, ILogUpdate
     {
         private int opID;
         private Import importObj;
         private Route routeObj;
         private Process processObj;
         private State state;
-        private ISlave slaveProxy;
+        private ILogUpdate slaveProxy;
 
         public State State
         {
@@ -30,7 +30,7 @@ namespace Slave
             set { state = value; }
         }
             
-        public ISlave SlaveProxy
+        public ILogUpdate SlaveProxy
         {
             get { return slaveProxy; }
         }
@@ -67,8 +67,8 @@ namespace Slave
             ChannelServices.RegisterChannel(channel, false);
 
             // Init the remote proxy to the update
-            slaveProxy = (ISlave)Activator.GetObject(
-              typeof(ISlave),
+            slaveProxy = (ILogUpdate)Activator.GetObject(
+              typeof(ILogUpdate),
               "tcp://localhost:10001/PuppetMaster");
 
             // Register Slave as remote object
