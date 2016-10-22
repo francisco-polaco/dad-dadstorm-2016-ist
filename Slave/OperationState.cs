@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ProcessCreationService
+namespace Slave
 {
     public class FrozenState : State
     {

@@ -1,4 +1,4 @@
-﻿namespace ProcessCreationService
+﻿namespace Slave
 {
     public abstract class AbstractFactory
     {

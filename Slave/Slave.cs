@@ -6,7 +6,7 @@ using System.Runtime.Remoting.Channels;
 using System.Collections.Generic;
 using System.Runtime.Remoting;
 
-namespace ProcessCreationService
+namespace Slave
 {
     public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface
     {

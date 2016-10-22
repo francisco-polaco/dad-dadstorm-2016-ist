@@ -1,7 +1,7 @@
 ﻿using CommonTypes;
 using System.Collections;
 
-namespace ProcessCreationService
+namespace Slave
 {
     public abstract class State : ISlave
     {

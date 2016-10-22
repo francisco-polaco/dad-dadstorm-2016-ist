@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace ProcessCreationService
+namespace Slave
 {
     public interface Import
     {

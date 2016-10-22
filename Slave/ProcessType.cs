@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace ProcessCreationService
+namespace Slave
 {
     public class Uniq : Process
     {
