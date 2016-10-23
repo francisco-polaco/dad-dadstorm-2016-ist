@@ -76,7 +76,7 @@
             this.button_run_all.Name = "button_run_all";
             this.button_run_all.Size = new System.Drawing.Size(75, 23);
             this.button_run_all.TabIndex = 3;
-            this.button_run_all.Text = "Run Config File";
+            this.button_run_all.Text = "Full speed";
             this.button_run_all.UseVisualStyleBackColor = true;
             this.button_run_all.Click += new System.EventHandler(this.button_run_all_Click);
             // 
