@@ -16,10 +16,7 @@ namespace PuppetMaster
         private Form mForm;
         private Delegate mUpdateForm;
 
-        public Log()
-        {
-
-        }
+        public Log() {}
 
         public Log(Form form, Delegate updateForm, string logFilePath = @"log.log")
         {
@@ -55,12 +52,14 @@ namespace PuppetMaster
 
         public void Exit()
         {
-            mIsThreadToExit = true;
-            lock (this)
-            {
-                Monitor.PulseAll(this);
-            }
-            mWritingThread.Join();
+            //mIsThreadToExit = true;
+            //lock (this)
+            //{
+            //    Monitor.PulseAll(this);
+            //}
+            //// This need to be fixed
+            // mWritingThread.Join(); 
+            mWritingThread.Abort();
         }
 
         protected void putInQueue(string toLog)
