@@ -1,23 +1,28 @@
 ﻿using System;
 using CommonTypes;
-using System.Collections;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
-using System.Collections.Generic;
 using System.Runtime.Remoting;
 
 namespace Slave
 {
-    public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface
+    public class ExecEnv
+    {
+        static void Main(string[] args)
+        {
+            // Reserved for testing - disabled in the multiple startup project 
+            // PCS should be the responsible for the slaves creation
+        }
+    }
+
+    public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface, ILogUpdate
     {
         private int opID;
         private Import importObj;
         private Route routeObj;
         private Process processObj;
-        private Dictionary<string, Slave> replicas = new Dictionary<string, Slave>();
-
         private State state;
-        private ISlave slaveProxy;
+        private ILogUpdate slaveProxy;
 
         public State State
         {
@@ -25,14 +30,9 @@ namespace Slave
             set { state = value; }
         }
             
-        public ISlave SlaveProxy
+        public ILogUpdate SlaveProxy
         {
             get { return slaveProxy; }
-        }
-
-        public Dictionary<string, Slave> Replicas
-        {
-            get { return replicas; }
         }
 
         public Import ImportObj
@@ -53,38 +53,25 @@ namespace Slave
             set { routeObj = value; }
         }
 
-        public Slave(Import importObj, Route routeObj, Process processObj, string[] replicasUrls)
+        public Slave(Import importObj, Route routeObj, Process processObj)
         {
             this.importObj = importObj;
             this.routeObj = routeObj;
             this.processObj = processObj;
             state = new UnfrozenState(this);
-            initClientProxies(replicasUrls);
         }
         
-        private void initClientProxies(string[] replicasUrls)
-        {
-            TcpChannel channel = new TcpChannel();
-            ChannelServices.RegisterChannel(channel, false);
-
-            // Init the remote objects to the slave replicas
-            Slave obj;
-            foreach(string replicaURL in replicasUrls)
-            {
-                obj = (Slave)Activator.GetObject(typeof(Slave),replicaURL);
-                replicas.Add(replicaURL, obj);
-            }
-
-            // Init the remote proxy to the update
-            slaveProxy = (ISlave)Activator.GetObject(
-              typeof(ISlave),
-              "tcp://localhost:10001/PuppetMaster");
-        }
-
         public void init(int opid)
         {
             TcpChannel channel = new TcpChannel(9000 + opid);
-            ChannelServices.RegisterChannel(channel, true);
+            ChannelServices.RegisterChannel(channel, false);
+
+            // Init the remote proxy to the update
+            slaveProxy = (ILogUpdate)Activator.GetObject(
+              typeof(ILogUpdate),
+              "tcp://localhost:10001/PuppetMaster");
+
+            // Register Slave as remote object
             RemotingServices.Marshal(this, opid.ToString(), typeof(Slave));
         }
 

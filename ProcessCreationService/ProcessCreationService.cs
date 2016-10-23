@@ -16,9 +16,10 @@ namespace ProcessCreationService
             Console.ReadLine();    
         }
 
+
     }
 
-    public class ProcessCreationService : MarshalByRefObject, ISlaveLaunch
+    public class ProcessCreationService : MarshalByRefObject, IPCSSlaveLaunch
     {
 
         public ProcessCreationService(string name)

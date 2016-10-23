@@ -1,4 +1,7 @@
-﻿namespace Slave
+﻿using CommonTypes;
+using System.Collections.Generic;
+
+namespace Slave
 {
     public class ImportFactory : AbstractFactory
     {
@@ -6,6 +9,7 @@
         {
             // TO DO
             return null;
+
         }
 
         public override Process GetProcessing(string[] specs)
@@ -13,7 +17,7 @@
             return null;
         }
 
-        public override Route GetRouting(string[] specs)
+        public override Route GetRouting(string[] specs, List<Replica> replica)
         {
             return null;
         }
@@ -52,7 +56,7 @@
                 return null;
         }
 
-        public override Route GetRouting(string[] specs)
+        public override Route GetRouting(string[] specs, List<Replica> replica)
         {
             return null;
         }
@@ -70,10 +74,27 @@
             return null;
         }
 
-        public override Route GetRouting(string[] specs)
+        /// <summary>
+        /// </summary>
+        /// <param name="specs">
+        /// specs[0] = type of routing operator
+        /// specs[1] = field_id
+        /// </param>
+        /// <param name="replica">
+        /// replica = List of CommonTypes.Replica filled with the downstream replicas
+        /// </param>
+        /// <returns></returns>
+        public override Route GetRouting(string[] specs, List<Replica> replica)
         {
-            //TO DO
-            return null;
+            string operatorType = specs[0];
+            if (operatorType.Equals("Primary"))
+                return new Primary(replica);
+            else if (operatorType.Equals("Random"))
+                return new Random(replica);
+            else if (operatorType.Equals("Hashing"))
+                return new Hashing(replica, specs[1]);
+            else
+                return null;
         }
     }
 }

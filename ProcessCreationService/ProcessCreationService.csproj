@@ -55,6 +55,10 @@
       <Project>{81e5a101-ad25-44b9-bd0c-4553ce7d4d8f}</Project>
       <Name>CommonTypes</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Slave\Slave.csproj">
+      <Project>{f2f5838c-90c1-4b28-857d-019dbf66ead3}</Project>
+      <Name>Slave</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
