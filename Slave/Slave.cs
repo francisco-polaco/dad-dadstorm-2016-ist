@@ -1,8 +1,5 @@
 ﻿using System;
 using CommonTypes;
-using System.Runtime.Remoting.Channels.Tcp;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting;
 
 namespace Slave
 {
@@ -17,12 +14,25 @@ namespace Slave
 
     public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface, ILogUpdate
     {
+        private string url;
         private int opID;
         private Import importObj;
         private Route routeObj;
         private Process processObj;
         private State state;
-        private ILogUpdate slaveProxy;
+        private ILogUpdate pupetLogProxy;
+
+        public int OpID
+        {
+            get { return opID; }
+            set { opID = value; }
+        }
+
+        public string Url
+        {
+            get { return url; }
+            set { url = value; }
+        }
 
         public State State
         {
@@ -30,9 +40,9 @@ namespace Slave
             set { state = value; }
         }
             
-        public ILogUpdate SlaveProxy
+        public ILogUpdate PupetLogProxy
         {
-            get { return slaveProxy; }
+            get { return pupetLogProxy; }
         }
 
         public Import ImportObj
@@ -53,26 +63,20 @@ namespace Slave
             set { routeObj = value; }
         }
 
-        public Slave(Import importObj, Route routeObj, Process processObj)
+        public Slave(Import importObj, Route routeObj, Process processObj, string url)
         {
             this.importObj = importObj;
             this.routeObj = routeObj;
             this.processObj = processObj;
+            this.url = url;
             state = new UnfrozenState(this);
         }
         
-        public void init(int opid)
+        public void init()
         {
-            TcpChannel channel = new TcpChannel(9000 + opid);
-            ChannelServices.RegisterChannel(channel, false);
-
-            // Init the remote proxy to the update
-            slaveProxy = (ILogUpdate)Activator.GetObject(
-              typeof(ILogUpdate),
-              "tcp://localhost:10001/PuppetMaster");
-
-            // Register Slave as remote object
-            RemotingServices.Marshal(this, opid.ToString(), typeof(RemoteCmdInterface));
+            // TO DO 
+            // init server
+            // init client to log pupetLogProxy
         }
 
         public void Dispatch(string input)
@@ -82,14 +86,15 @@ namespace Slave
 
         public void Update(string toUpdate)
         {
-            if (slaveProxy != null)
+            if (pupetLogProxy != null)
                 state.Update(toUpdate);
         }
 
         public void Start(int opid)
         {
             opID = opid;
-            init(opid);
+            init();
+            Dispatch(null);
         }
 
         public void Interval(int opid, int ms)

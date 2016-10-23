@@ -15,8 +15,6 @@ namespace ProcessCreationService
             Console.WriteLine("<Enter to exit> ");
             Console.ReadLine();    
         }
-
-
     }
 
     public class ProcessCreationService : MarshalByRefObject, IPCSSlaveLaunch
@@ -32,13 +30,12 @@ namespace ProcessCreationService
 
         public void Launch(string input)
         {
-            // Márcio quando tiveres a lançar um operador novo manda os inputs em string ex:
-            // operator spec UNIQ 1
-            // O 1 depois do Uniq manda em string
-            // Uniq un = new Uniq("1");
-           
             // TO DO
 
+            // Márcio
+            // Deves criar os objectos a partir das factories, dentro do ficheiro factories
+            // tens um summary que diz o que cada objecto precisa, ou seja que params eu assumo.
+            // Depois passas ao constructor do Slave, o url no slave é nome completo dele.
         }
     }
 }
