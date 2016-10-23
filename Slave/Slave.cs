@@ -72,7 +72,7 @@ namespace Slave
               "tcp://localhost:10001/PuppetMaster");
 
             // Register Slave as remote object
-            RemotingServices.Marshal(this, opid.ToString(), typeof(Slave));
+            RemotingServices.Marshal(this, opid.ToString(), typeof(RemoteCmdInterface));
         }
 
         public void Dispatch(string input)
