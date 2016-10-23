@@ -1,10 +1,10 @@
-﻿using System.Collections;
+﻿using System.Collections.Generic;
 
 namespace Slave
 {
     public interface Import
     {
-        void Import(string input);
+        List<string> Import();
     }
 
     public interface Route

@@ -55,6 +55,10 @@
             this.url = url;
             this.proxy = proxy;
         }
+
+        public Replica()
+        {
+        }
     }
 
 }

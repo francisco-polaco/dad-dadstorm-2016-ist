@@ -5,11 +5,21 @@ namespace Slave
 {
     public class ImportFactory : AbstractFactory
     {
-        public override Import GetImport(string[] specs)
+        /// <summary>
+        /// </summary>
+        /// <param name="specs">
+        /// specs[0] = type of processing operator
+        /// filePaths = string[] filePaths
+        /// </param>
+        /// <returns></returns>
+        public override Import GetImport(string[] specs, string[] filePaths)
         {
-            // TO DO
+            string operatorType = specs[0];
+            if (operatorType.Equals("FileImport"))
+                return new FileImport(filePaths);
+            else if (operatorType.Equals("OpImport"))
+                return new OpImport();
             return null;
-
         }
 
         public override Process GetProcessing(string[] specs)
@@ -25,7 +35,7 @@ namespace Slave
 
     public class ProcessingFactory : AbstractFactory
     {
-        public override Import GetImport(string[] specs)
+        public override Import GetImport(string[] specs, string[] filePaths)
         {
             return null;
         }
@@ -64,7 +74,7 @@ namespace Slave
 
     public class RoutingFactory : AbstractFactory
     {
-        public override Import GetImport(string[] specs)
+        public override Import GetImport(string[] specs, string[] filePaths)
         {
             return null;
         }
