@@ -12,9 +12,8 @@ namespace PuppetMaster
 {
     class ConfigFileProcessor
     {
-        private static int port = 10001;
+        
 
-        private PuppetMaster mPm;
         private string mConfigFilePath;
         private List<string> mFileLines;
         private int mLineIndex = 0;
@@ -22,19 +21,18 @@ namespace PuppetMaster
 
         private static ConfigFileProcessor mInstance = null;
 
-        public static ConfigFileProcessor GetInstance(PuppetMaster pm, string filepath)
+        public static ConfigFileProcessor GetInstance(string filepath)
         {
             if(mInstance == null)
             {
-                mInstance = new ConfigFileProcessor(pm, filepath);
+                mInstance = new ConfigFileProcessor(filepath);
             }
             return mInstance;
         }
 
-        private ConfigFileProcessor(PuppetMaster pm, string filepath = @"config.config")
+        private ConfigFileProcessor(string filepath = @"config.config")
         {
             mConfigFilePath = filepath;
-            mPm = pm;
             ProcessFile();
         }
 
@@ -63,12 +61,12 @@ namespace PuppetMaster
                 if (mIsItRunning == 0) mIsItRunning = 1;
                 else if(mIsItRunning != 1) throw new InvalidOperationException();
             }
-            mPm.Log("===== Configuration file loading started =====");
+            PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
             foreach (string cmd in mFileLines)
             {
                 ExecuteLine(cmd, form, updateUI);
             }
-            mPm.Log("===== Configuration file loading complete =====");
+            PuppetMaster.GetInstance().Log("===== Configuration file loading complete =====");
 
         }
 
@@ -79,12 +77,12 @@ namespace PuppetMaster
                 if (mIsItRunning == 0) mIsItRunning = 2;
                 else if (mIsItRunning != 2) throw new InvalidOperationException();
             }
-            mPm.Log("===== Configuration file loading started =====");
+            PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
             if (mFileLines.Count != 0 && mLineIndex < mFileLines.Count)
                 ExecuteLine(mFileLines.ElementAt(mLineIndex++), form, updateUI);
             if (mLineIndex >= mFileLines.Count)
             {
-                mPm.Log("===== Configuration file loading complete =====");
+                PuppetMaster.GetInstance().Log("===== Configuration file loading complete =====");
                 form.Invoke(toDisableStepByStep);
             }
         }
@@ -99,11 +97,11 @@ namespace PuppetMaster
             {
                 string[] pieces = cmd.Split(' ');
                 if (pieces.Length == 2 && pieces[1].Equals("light"))
-                    mPm.Logger = new LightLog(form, updateUI);
-                else mPm.Logger = new FullLog(form, updateUI);
+                    PuppetMaster.GetInstance().Logger = new LightLog(form, updateUI);
+                else PuppetMaster.GetInstance().Logger = new FullLog(form, updateUI);
 
-                ChannelServices.RegisterChannel(new TcpChannel(port), false);
-                RemotingServices.Marshal(mPm.Logger, "Log",
+                
+                RemotingServices.Marshal(PuppetMaster.GetInstance().Logger, "Log",
                     typeof(Log));
             }
             else if (cmd.StartsWith("OP"))
@@ -117,14 +115,47 @@ namespace PuppetMaster
                 {
                     listUrls.Add(res[i].Replace(",", string.Empty));
                 }
-                mPm.CreateOperator(opId, listUrls);
+                PuppetMaster.GetInstance().CreateOperator(opId, listUrls);
+                PCSManager.GetInstance().SendCommand(cmd, listUrls);
 
             }
             else
             {
                 // Commands to operators
+                if (cmd.StartsWith("Interval"))
+                {
+                    string[] res = cmd.Split(' ');
+                    if(res.Length == 3)
+                    {
+                        PuppetMaster.GetInstance()
+                            .Interval(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
+                    }
+                }
+                else if (cmd.StartsWith("Start"))
+                {
+                    string[] res = cmd.Split(' ');
+                    if (res.Length == 2)
+                    {
+                        PuppetMaster.GetInstance()
+                            .Start(int.Parse(res[1].Substring(2)));
+                    }
+                }
+                else if (cmd.StartsWith("Status"))
+                {
+                    PuppetMaster.GetInstance().Status();
+                }
+                else if (cmd.StartsWith("Wait"))
+                {
+                    string[] res = cmd.Split(' ');
+                    if (res.Length == 2)
+                    {
+                        PuppetMaster.GetInstance()
+                            .Wait(int.Parse(res[1].Substring(2)));
+                    }
+                }
+
             }
-            mPm.Log("Config file command ran: " + cmd);
+            PuppetMaster.GetInstance().Log("Config file command ran: " + cmd);
         }
 
     }

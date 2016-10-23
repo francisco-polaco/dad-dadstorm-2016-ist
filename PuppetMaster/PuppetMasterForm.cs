@@ -45,7 +45,7 @@ namespace PuppetMaster
                     MessageBox.Show("Please select a config file.");
                     return;
                 }
-                mPuppetMaster = new PuppetMaster();
+                mPuppetMaster = PuppetMaster.GetInstance();
             }
             button_run_all.Enabled = false;
             button_slow_parse.Enabled = false;
@@ -63,7 +63,7 @@ namespace PuppetMaster
                     MessageBox.Show("Please select a config file.");
                     return;
                 }
-                mPuppetMaster = new PuppetMaster();
+                mPuppetMaster = PuppetMaster.GetInstance();
             }
             button_run_all.Enabled = false;
             new Thread(() =>
