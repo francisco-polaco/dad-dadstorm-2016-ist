@@ -49,6 +49,8 @@ namespace PuppetMaster
             }
             button_run_all.Enabled = false;
             button_slow_parse.Enabled = false;
+            button_browse.Enabled = false;
+            text_file.ReadOnly = true;
             new Thread(() =>
             {
                 mPuppetMaster.SetupFullSpeed(this, new DelAddLog(AddLog), text_file.Text);
@@ -66,6 +68,8 @@ namespace PuppetMaster
                 mPuppetMaster = PuppetMaster.GetInstance();
             }
             button_run_all.Enabled = false;
+            button_browse.Enabled = false;
+            text_file.ReadOnly = true;
             new Thread(() =>
             {
                 mPuppetMaster.SetupStepByStep(this, new DelAddLog(AddLog), new DisableStepByStep(DisableStepByStep), text_file.Text);

@@ -83,39 +83,49 @@ namespace PuppetMaster
             mOperators.Add(id, new Operator(id, urls));
         }
 
-        internal void Exit()
-        {
-            if(mLogger != null) mLogger.Exit();
-        }
-
         public void Start(int opid)
         {
+            mOperators[opid].Start();
         }
 
         public void Interval(int opid, int ms)
         {
+            mOperators[opid].Interval(ms);
         }
 
         public void Status()
         {
+            foreach(KeyValuePair<int, Operator> entry in mOperators)
+            {
+                entry.Value.Status();
+            }
         }
 
-        public void Crash(string url)
+        public void Crash(int opid, int replicaid)
         {
+            mOperators[opid].Crash(replicaid);
         }
 
-        public void Freeze(string url)
+        public void Freeze(int opid, int replicaid)
         {
+            mOperators[opid].Freeze(replicaid);
         }
 
-        public void Unfreeze(string url)
+        public void Unfreeze(int opid, int replicaid)
         {
+            mOperators[opid].Unfreeze(replicaid);
         }
 
         public void Wait(int ms)
         {
             System.Threading.Thread.Sleep(ms);
         }
+
+        internal void Exit()
+        {
+            if (mLogger != null) mLogger.Exit();
+        }
+
     }
 
 

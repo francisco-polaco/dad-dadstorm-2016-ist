@@ -89,6 +89,7 @@ namespace PuppetMaster
 
         private void ExecuteLine(string cmd, Form form, Delegate updateUI)
         {
+            PuppetMaster.GetInstance().Log("Running config file command: " + cmd);
             if (cmd.StartsWith("Semantics"))
             {
                 // Next time
@@ -125,7 +126,7 @@ namespace PuppetMaster
                 if (cmd.StartsWith("Interval"))
                 {
                     string[] res = cmd.Split(' ');
-                    if(res.Length == 3)
+                    if (res.Length == 3)
                     {
                         PuppetMaster.GetInstance()
                             .Interval(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
@@ -150,12 +151,42 @@ namespace PuppetMaster
                     if (res.Length == 2)
                     {
                         PuppetMaster.GetInstance()
-                            .Wait(int.Parse(res[1].Substring(2)));
+                            .Wait(int.Parse(res[1]));
                     }
+                }
+                else if (cmd.StartsWith("Freeze"))
+                {
+                    string[] res = cmd.Split(' ');
+                    if (res.Length == 3)
+                    {
+                        PuppetMaster.GetInstance()
+                            .Freeze(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
+                    }
+                }
+                else if (cmd.StartsWith("Unfreeze"))
+                {
+                    string[] res = cmd.Split(' ');
+                    if (res.Length == 3)
+                    {
+                        PuppetMaster.GetInstance()
+                            .Unfreeze(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
+                    }
+                }
+                else if (cmd.StartsWith("Crash"))
+                {
+                    string[] res = cmd.Split(' ');
+                    if (res.Length == 3)
+                    {
+                        PuppetMaster.GetInstance()
+                            .Crash(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
+                    }
+                }else
+                {
+                    PuppetMaster.GetInstance().Log("Invalid command.");
                 }
 
             }
-            PuppetMaster.GetInstance().Log("Config file command ran: " + cmd);
+            
         }
 
     }
