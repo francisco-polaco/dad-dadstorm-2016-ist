@@ -63,10 +63,12 @@ namespace PuppetMaster
                 if (mIsItRunning == 0) mIsItRunning = 1;
                 else if(mIsItRunning != 1) throw new InvalidOperationException();
             }
+            mPm.Log("===== Configuration file loading started =====");
             foreach (string cmd in mFileLines)
             {
                 ExecuteLine(cmd, form, updateUI);
             }
+            mPm.Log("===== Configuration file loading complete =====");
 
         }
 
@@ -77,10 +79,14 @@ namespace PuppetMaster
                 if (mIsItRunning == 0) mIsItRunning = 2;
                 else if (mIsItRunning != 2) throw new InvalidOperationException();
             }
-            if(mFileLines.Count != 0 && mLineIndex < mFileLines.Count)
+            mPm.Log("===== Configuration file loading started =====");
+            if (mFileLines.Count != 0 && mLineIndex < mFileLines.Count)
                 ExecuteLine(mFileLines.ElementAt(mLineIndex++), form, updateUI);
             if (mLineIndex >= mFileLines.Count)
+            {
+                mPm.Log("===== Configuration file loading complete =====");
                 form.Invoke(toDisableStepByStep);
+            }
         }
 
         private void ExecuteLine(string cmd, Form form, Delegate updateUI)
@@ -103,6 +109,15 @@ namespace PuppetMaster
             else if (cmd.StartsWith("OP"))
             {
                 // Operators setup
+                string[] res = cmd.Split(' ');
+
+                int opId = int.Parse(res[0].Substring(2));
+                List<string> listUrls = new List<string>();
+                for(int i = 10; i < res.Length && res[i].StartsWith("tcp://"); i++)
+                {
+                    listUrls.Add(res[i].Replace(",", string.Empty));
+                }
+                mPm.CreateOperator(opId, listUrls);
 
             }
             else

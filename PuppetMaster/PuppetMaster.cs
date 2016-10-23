@@ -17,7 +17,7 @@ namespace PuppetMaster
         private Log mLogger;
         private Queue<string> mLoggerBuffer = new Queue<string>();
 
-        private Dictionary<uint, Operator> mOperators;
+        private Dictionary<int, Operator> mOperators;
         private List<string> mUrlOfPcs = new List<string>();
 
 
@@ -36,7 +36,7 @@ namespace PuppetMaster
 
         public PuppetMaster()
         {
-            mOperators = new Dictionary<uint, Operator>();
+            mOperators = new Dictionary<int, Operator>();
             mUrlOfPcs.Add("tcp://1.2.3.4:10000/pcs");
             mUrlOfPcs.Add("tcp://1.2.3.5:10000/pcs");
             mUrlOfPcs.Add("tcp://1.2.3.6:10000/pcs");
@@ -47,7 +47,7 @@ namespace PuppetMaster
 
         public PuppetMaster(List<String> urlsOfPCS)
         {
-            mOperators = new Dictionary<uint, Operator>();
+            mOperators = new Dictionary<int, Operator>();
             mUrlOfPcs = urlsOfPCS;
         }
 
@@ -81,7 +81,12 @@ namespace PuppetMaster
             }
         }
 
-        void init()
+        public void CreateOperator(int id, List<string> urls)
+        {
+            mOperators.Add(id, new Operator(id, urls));
+        }
+
+        void Init()
         {
             //parse
             //launch

@@ -9,13 +9,17 @@ namespace PuppetMaster
 {
     class Operator
     {
-        private uint mOpid;
+        private int mOpid;
         private List<SlaveProxy> mSlaveProxy;
 
-        Operator(uint opid)
+        public Operator(int opid, List<string> urls)
         {
             mOpid = opid;
             mSlaveProxy = new List<SlaveProxy>();
+            foreach(string s in urls)
+            {
+                mSlaveProxy.Add(new SlaveProxy(s));
+            }
         }
     }
 
@@ -24,7 +28,7 @@ namespace PuppetMaster
         private string mUrl;
         private ISlave mRemoteObj;
 
-        SlaveProxy(string url)
+        public SlaveProxy(string url)
         {
             mUrl = url;
             mRemoteObj = (ISlave)Activator.GetObject(
@@ -37,9 +41,5 @@ namespace PuppetMaster
             mRemoteObj.Dispatch(a);
         }
 
-        public void Update(string s)
-        {
-            mRemoteObj.Update(s);
-        }
     }
 }
