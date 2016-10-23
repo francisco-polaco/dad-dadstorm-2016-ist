@@ -10,60 +10,60 @@ namespace PuppetMaster
     class Operator 
     {
         private int mOpid;
-        private List<SlaveProxy> mSlaveProxyList;
+        private Dictionary<string, SlaveProxy> mSlaveProxyList;
 
         public Operator(int opid, List<string> urls)
         {
             mOpid = opid;
-            mSlaveProxyList = new List<SlaveProxy>();
+            mSlaveProxyList = new Dictionary<string, SlaveProxy>();
             foreach(string s in urls)
             {
 
-                mSlaveProxyList.Add(new SlaveProxy(s));
+                mSlaveProxyList.Add(s, new SlaveProxy(s));
             }
         }
 
         public void Crash(string url)
         {
-            throw new NotImplementedException();
+            mSlaveProxyList[url].Crash();
         }
 
         public void Freeze(string url)
         {
-            throw new NotImplementedException();
+            mSlaveProxyList[url].Freeze();
         }
 
         public void Interval(int ms)
         {
-            foreach (SlaveProxy sp in mSlaveProxyList)
+            foreach (KeyValuePair<string, SlaveProxy> entry in mSlaveProxyList)
             {
-                sp.Interval(ms);
+                entry.Value.Interval(ms);
             }
         }
 
         public void Start()
         {
-            foreach(SlaveProxy sp in mSlaveProxyList)
+            foreach (KeyValuePair<string, SlaveProxy> entry in mSlaveProxyList)
             {
-                sp.Start();
+                entry.Value.Start();
             }
         }
 
         public void Status()
         {
-            foreach (SlaveProxy sp in mSlaveProxyList)
+            foreach (KeyValuePair<string, SlaveProxy> entry in mSlaveProxyList)
             {
-                sp.Status();
+                entry.Value.Status();
             }
         }
 
         public void Unfreeze(string url)
         {
-            throw new NotImplementedException();
+            mSlaveProxyList[url].Unfreeze();
         }
     }
 
-    class SlaveProxy:  ISlave
+    class SlaveProxy: RemoteCmdInterface
     {
         private string mUrl;
 
@@ -72,51 +72,52 @@ namespace PuppetMaster
             mUrl = url;
         }
 
-        public void Dispatch(string a)
+        public void Freeze()
         {
-            ISlave remoteObj = (ISlave)Activator.GetObject(
-                typeof(ISlave),
+            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
+                typeof(RemoteCmdInterface),
                 mUrl);
-            remoteObj.Dispatch(a);
-        }
-
-        public void Freeze(string url)
-        {
-            throw new NotImplementedException();
+            //remoteObj.Freeze();
         }
 
         public void Interval(int ms)
         {
-            ISlave remoteObj = (ISlave)Activator.GetObject(
-                typeof(ISlave),
+            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
+                typeof(RemoteCmdInterface),
                 mUrl);
             //remoteObj.Interval(ms);
         }
 
         public void Start()
         {
-            ISlave remoteObj = (ISlave)Activator.GetObject(
-                typeof(ISlave),
+            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
+                typeof(RemoteCmdInterface),
                 mUrl);
             //remoteObj.Start();
         }
 
         public void Status()
         {
-            ISlave remoteObj = (ISlave)Activator.GetObject(
-                typeof(ISlave),
+            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
+                typeof(RemoteCmdInterface),
                 mUrl);
             //remoteObj.Status();
         }
 
-        public void Unfreeze(string url)
+        public void Unfreeze()
         {
-            throw new NotImplementedException();
+            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
+                typeof(RemoteCmdInterface),
+                mUrl);
+            //remoteObj.Unfreeze();
         }
 
-        public void Crash(string url)
+        public void Crash()
         {
-            throw new NotImplementedException();
+            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
+                typeof(RemoteCmdInterface),
+                mUrl);
+            //remoteObj.Crash();
         }
     }
 }

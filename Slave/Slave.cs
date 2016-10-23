@@ -15,18 +15,12 @@ namespace Slave
     public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface, ILogUpdate
     {
         private string url;
-        private int opID;
         private Import importObj;
         private Route routeObj;
         private Process processObj;
         private State state;
         private ILogUpdate pupetLogProxy;
 
-        public int OpID
-        {
-            get { return opID; }
-            set { opID = value; }
-        }
 
         public string Url
         {
@@ -90,14 +84,13 @@ namespace Slave
                 state.Update(toUpdate);
         }
 
-        public void Start(int opid)
+        public void Start()
         {
-            opID = opid;
             init();
             Dispatch(null);
         }
 
-        public void Interval(int opid, int ms)
+        public void Interval(int ms)
         {
             throw new NotImplementedException();
         }
@@ -107,17 +100,17 @@ namespace Slave
             throw new NotImplementedException();
         }
 
-        public void Crash(string url)
+        public void Crash()
         {
             throw new NotImplementedException();
         }
 
-        public void Freeze(string url)
+        public void Freeze()
         {
             throw new NotImplementedException();
         }
 
-        public void Unfreeze(string url)
+        public void Unfreeze()
         {
             throw new NotImplementedException();
         }

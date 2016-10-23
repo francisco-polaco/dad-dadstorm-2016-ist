@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace PuppetMaster
 {
-    public class PuppetMaster : RemoteCmdInterface
+    public class PuppetMaster
     {
         private static int port = 10001;
 

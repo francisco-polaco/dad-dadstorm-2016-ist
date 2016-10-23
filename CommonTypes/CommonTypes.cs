@@ -7,12 +7,12 @@
 
     public interface RemoteCmdInterface
     {
-        void Start(int opid);
-        void Interval(int opid, int ms);
+        void Start();
+        void Interval(int ms);
         void Status();
-        void Crash(string url);
-        void Freeze(string url);
-        void Unfreeze(string url);
+        void Crash();
+        void Freeze();
+        void Unfreeze();
     }
 
     public interface ISlave
