@@ -56,9 +56,9 @@ namespace Slave
             string[] content = input.Split(',');
             switch (condition)
             {
-                case ">": return content[fieldNumber].Trim().Length > value.Length ? input : string.Empty;
-                case "<": return content[fieldNumber].Trim().Length < value.Length ? input : string.Empty;
-                case "=": return content[fieldNumber].Trim().Length == value.Length ? input : string.Empty;
+                case ">": return String.Compare(content[fieldNumber].Trim(), value) > 0 ? input : string.Empty;
+                case "<": return String.Compare(content[fieldNumber].Trim(), value) < 0 ? input : string.Empty;
+                case "=": return String.Compare(content[fieldNumber].Trim(), value) == 0 ? input : string.Empty;
                 default: return string.Empty;
             }
         }

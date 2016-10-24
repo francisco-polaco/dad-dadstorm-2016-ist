@@ -38,7 +38,7 @@ namespace Slave
             // Se o input vier a null:
             // -> Tentas SlaveObj.ImportObj.Import():
             //    a) null = não há nada para processar retornas
-            //    b) não null = iteras a lista retornada processas e das route
+            //    b) não null = iteras a lista retornada processas (cuidado que o process retorna string.empty quando os requisitos n sao preenchidos) e das route 
             // Caso o input n venha a null:
             // -> fazes process do input e das route
             throw new NotImplementedException();

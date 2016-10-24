@@ -50,7 +50,7 @@ namespace Slave
         public void Route(string input)
         {
             string[] content = input.Split(',');
-            int hashNumber = content[fieldID].GetHashCode();
+            int hashNumber = (content[fieldID].Trim().GetHashCode())%(content.Length - 1);
             replica[hashNumber].Proxy.Dispatch(input);
         }
     }
