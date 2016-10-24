@@ -1,4 +1,6 @@
-﻿namespace CommonTypes
+﻿using System.Collections.Generic;
+
+namespace CommonTypes
 {
     public interface ILogUpdate
     {
@@ -22,7 +24,7 @@
 
     public interface IPCSSlaveLaunch
     {
-        void Launch(string input);
+        void Launch(ConnectionPack input);
     }
 
     public class Replica
@@ -61,4 +63,59 @@
         }
     }
 
+
+    [System.Serializable]
+    public class ConnectionPack
+    {
+        private string mCmd;
+        private List<string> mListUrls;
+        private List<string> mReplicaUrlsInput;
+
+        public string Cmd
+        {
+            get
+            {
+                return mCmd;
+            }
+
+            set
+            {
+                mCmd = value;
+            }
+        }
+
+        public List<string> ReplicaUrlsInput
+        {
+            get
+            {
+                return mReplicaUrlsInput;
+            }
+
+            set
+            {
+                mReplicaUrlsInput = value;
+            }
+        }
+
+        public List<string> ListUrls
+        {
+            get
+            {
+                return mListUrls;
+            }
+
+            set
+            {
+                mListUrls = value;
+            }
+        }
+
+        public ConnectionPack(string cmd, List<string> listUrls)
+        {
+            mCmd = cmd;
+            mListUrls = listUrls;
+        }
+
+      
+    }
 }

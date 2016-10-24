@@ -28,7 +28,7 @@ namespace ProcessCreationService
             Console.WriteLine("Process Creation Service " + name + " created!");
         }
 
-        public void Launch(string input)
+        public void Launch(ConnectionPack input)
         {
             // TO DO
 

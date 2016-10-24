@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommonTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting;
@@ -12,12 +13,15 @@ namespace PuppetMaster
 {
     class ConfigFileProcessor
     {
-        
 
         private string mConfigFilePath;
         private List<string> mFileLines;
         private int mLineIndex = 0;
         private volatile uint mIsItRunning = 0; // 1 full speed , 2 step by step
+        private volatile bool mWereOperatorsCreated = false;
+
+        private Dictionary<int, ConnectionPack> mWhatShouldISentToOperators 
+            = new Dictionary<int, ConnectionPack>();
 
         private static ConfigFileProcessor mInstance = null;
 
@@ -77,9 +81,13 @@ namespace PuppetMaster
                 if (mIsItRunning == 0) mIsItRunning = 2;
                 else if (mIsItRunning != 2) throw new InvalidOperationException();
             }
-            PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
+
+            if(mLineIndex == 0)
+                PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
+
             if (mFileLines.Count != 0 && mLineIndex < mFileLines.Count)
                 ExecuteLine(mFileLines.ElementAt(mLineIndex++), form, updateUI);
+
             if (mLineIndex >= mFileLines.Count)
             {
                 PuppetMaster.GetInstance().Log("===== Configuration file loading complete =====");
@@ -116,13 +124,31 @@ namespace PuppetMaster
                 {
                     listUrls.Add(res[i].Replace(",", string.Empty));
                 }
+
+                ConnectionPack thingsToSend = new ConnectionPack(cmd, listUrls);
+                mWhatShouldISentToOperators.Add(opId, thingsToSend);
+
+                if (res[3].StartsWith("OP") && !res[3].EndsWith(".data"))
+                {
+                    // Put in connection pack of the previous operator the urls of this one. So he can direct its output
+                    int op2Id = int.Parse(res[3].Substring(2));
+                    mWhatShouldISentToOperators[op2Id].ReplicaUrlsInput = listUrls;
+                }
+
                 PuppetMaster.GetInstance().CreateOperator(opId, listUrls);
-                PCSManager.GetInstance().SendCommand(cmd, listUrls);
 
             }
             else
             {
                 // Commands to operators
+                // Send every creation command to the operators
+                if (!mWereOperatorsCreated)
+                {
+                    foreach(KeyValuePair<int, ConnectionPack> entry in mWhatShouldISentToOperators)
+                        PCSManager.GetInstance().SendCommand(entry.Value);
+                    mWereOperatorsCreated = true;
+                }
+
                 if (cmd.StartsWith("Interval"))
                 {
                     string[] res = cmd.Split(' ');
@@ -180,7 +206,8 @@ namespace PuppetMaster
                         PuppetMaster.GetInstance()
                             .Crash(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
                     }
-                }else
+                }
+                else
                 {
                     PuppetMaster.GetInstance().Log("Invalid command.");
                 }

@@ -151,19 +151,19 @@ namespace PuppetMaster
         //    //mUrlOfPcs.Add("tcp://1.2.3.10:10000/pcs");
         //}
 
-        public void SendCommand(string command, List<string> urls)
+        public void SendCommand(ConnectionPack cp)
         {
-            foreach(string s in urls)
+            foreach(string url in cp.ListUrls)
             {
-                int portIndex = s.IndexOf(':', 4); // skip the first : from the tcp protocol
-                string pcsUrl = s.Substring(0, portIndex + 1) + "10000/pcs";
+                int portIndex = url.IndexOf(':', 4); // skip the first : from the tcp protocol
+                string pcsUrl = url.Substring(0, portIndex + 1) + "10000/pcs";
                 PuppetMaster.GetInstance().Log("PCS URL: " + pcsUrl);
                 // Remove comments after pcs implementation
                 //try
                 //{
                 //    IPCSSlaveLaunch remoteObj = (IPCSSlaveLaunch)Activator.GetObject(
                 //        typeof(IPCSSlaveLaunch), pcsUrl);
-                //    remoteObj.Launch(command);
+                //    remoteObj.Launch(cp);
                 //}catch(SocketException e)
                 //{
                 //    MessageBox.Show("Error connecting to PCS with URL: " + pcsUrl);
