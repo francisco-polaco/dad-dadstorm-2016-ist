@@ -14,37 +14,37 @@ namespace PuppetMaster
 {
     public class PuppetMaster
     {
-        private static int port = 10001;
+        private static int PORT = 10001;
 
-        private Log mLogger;
-        private Queue<string> mLoggerBuffer = new Queue<string>();
+        private Log _logger;
+        private Queue<string> _loggerBuffer = new Queue<string>();
 
-        private Dictionary<int, Operator> mOperators;
+        private Dictionary<int, Operator> _operators;
 
-        private static PuppetMaster mInstance = null;
+        private static PuppetMaster _instance = null;
 
         public static PuppetMaster GetInstance()
         {
-            if (mInstance == null) mInstance = new PuppetMaster();
-            return mInstance;
+            if (_instance == null) _instance = new PuppetMaster();
+            return _instance;
         }
 
         private PuppetMaster()
         {
-            mOperators = new Dictionary<int, Operator>();
-            ChannelServices.RegisterChannel(new TcpChannel(port), false);
+            _operators = new Dictionary<int, Operator>();
+            ChannelServices.RegisterChannel(new TcpChannel(PORT), false);
         }
 
         public Log Logger
         {
             get
             {
-                return mLogger;
+                return _logger;
             }
 
             set
             {
-                mLogger = value;
+                _logger = value;
             }
         }
 
@@ -60,42 +60,42 @@ namespace PuppetMaster
 
         public void Log(string toLog)
         {
-            if (mLogger != null)
+            if (_logger != null)
             {
-                if (mLoggerBuffer.Count != 0)
+                if (_loggerBuffer.Count != 0)
                 {
-                    foreach (string s in mLoggerBuffer) mLogger.Update(s);
-                    mLoggerBuffer.Clear();
+                    foreach (string s in _loggerBuffer) _logger.Update(s);
+                    _loggerBuffer.Clear();
                 }
-                mLogger.Update(toLog);
+                _logger.Update(toLog);
             }
             else
             {
                 lock (this)
                 {
-                    mLoggerBuffer.Enqueue(toLog);
+                    _loggerBuffer.Enqueue(toLog);
                 }
             }
         }
 
         public void CreateOperator(int id, List<string> urls)
         {
-            mOperators.Add(id, new Operator(id, urls));
+            _operators.Add(id, new Operator(id, urls));
         }
 
         public void Start(int opid)
         {
-            mOperators[opid].Start();
+            _operators[opid].Start();
         }
 
         public void Interval(int opid, int ms)
         {
-            mOperators[opid].Interval(ms);
+            _operators[opid].Interval(ms);
         }
 
         public void Status()
         {
-            foreach(KeyValuePair<int, Operator> entry in mOperators)
+            foreach(KeyValuePair<int, Operator> entry in _operators)
             {
                 entry.Value.Status();
             }
@@ -103,17 +103,17 @@ namespace PuppetMaster
 
         public void Crash(int opid, int replicaid)
         {
-            mOperators[opid].Crash(replicaid);
+            _operators[opid].Crash(replicaid);
         }
 
         public void Freeze(int opid, int replicaid)
         {
-            mOperators[opid].Freeze(replicaid);
+            _operators[opid].Freeze(replicaid);
         }
 
         public void Unfreeze(int opid, int replicaid)
         {
-            mOperators[opid].Unfreeze(replicaid);
+            _operators[opid].Unfreeze(replicaid);
         }
 
         public void Wait(int ms)
@@ -123,8 +123,8 @@ namespace PuppetMaster
 
         internal void Exit()
         {
-            if (mLogger != null) mLogger.Exit();
-            foreach(KeyValuePair<int, Operator> entry in mOperators)
+            if (_logger != null) _logger.Exit();
+            foreach(KeyValuePair<int, Operator> entry in _operators)
             {
                 entry.Value.Exit();
             }
@@ -136,12 +136,12 @@ namespace PuppetMaster
     public class PCSManager
     {
 
-        private static PCSManager mInstance = null;
+        private static PCSManager _instance = null;
 
         public static PCSManager GetInstance()
         {
-            if (mInstance == null) mInstance = new PCSManager();
-            return mInstance;
+            if (_instance == null) _instance = new PCSManager();
+            return _instance;
         }
 
         public void SendCommand(ConnectionPack cp)

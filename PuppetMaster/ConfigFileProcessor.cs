@@ -14,45 +14,45 @@ namespace PuppetMaster
     class ConfigFileProcessor
     {
 
-        private string mConfigFilePath;
-        private List<string> mFileLines;
-        private int mLineIndex = 0;
-        private volatile uint mIsItRunning = 0; // 1 full speed , 2 step by step
-        private volatile bool mWereOperatorsCreated = false;
+        private string _configFilePath;
+        private List<string> _fileLines;
+        private int _lineIndex = 0;
+        private volatile uint _isItRunning = 0; // 1 full speed , 2 step by step
+        private volatile bool _wereOperatorsCreated = false;
 
-        private Dictionary<int, ConnectionPack> mWhatShouldISentToOperators 
+        private Dictionary<int, ConnectionPack> _whatShouldISentToOperators 
             = new Dictionary<int, ConnectionPack>();
 
-        private static ConfigFileProcessor mInstance = null;
+        private static ConfigFileProcessor _instance = null;
 
         public static ConfigFileProcessor GetInstance(string filepath)
         {
-            if(mInstance == null)
+            if(_instance == null)
             {
-                mInstance = new ConfigFileProcessor(filepath);
+                _instance = new ConfigFileProcessor(filepath);
             }
-            return mInstance;
+            return _instance;
         }
 
         private ConfigFileProcessor(string filepath = @"config.config")
         {
-            mConfigFilePath = filepath;
+            _configFilePath = filepath;
             ProcessFile();
         }
 
         private void ProcessFile()
         {
             System.IO.StreamReader file =
-                new System.IO.StreamReader(@mConfigFilePath);
+                new System.IO.StreamReader(_configFilePath);
             string line;
-            mFileLines = new List<string>();
+            _fileLines = new List<string>();
             while ((line = file.ReadLine()) != null)
             {
                 if (line.StartsWith("%%") || line.StartsWith("%") ||
                     line.StartsWith("\n") || line.StartsWith("\r\n") || 
                     line.Equals(""))
                     continue; // comments or empty lines
-                mFileLines.Add(line);
+                _fileLines.Add(line);
             }
 
             file.Close();
@@ -62,11 +62,11 @@ namespace PuppetMaster
         {
             lock (this)
             {
-                if (mIsItRunning == 0) mIsItRunning = 1;
-                else if(mIsItRunning != 1) throw new InvalidOperationException();
+                if (_isItRunning == 0) _isItRunning = 1;
+                else if(_isItRunning != 1) throw new InvalidOperationException();
             }
             PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
-            foreach (string cmd in mFileLines)
+            foreach (string cmd in _fileLines)
             {
                 ExecuteLine(cmd, form, updateUI);
             }
@@ -78,17 +78,17 @@ namespace PuppetMaster
         {
             lock (this)
             {
-                if (mIsItRunning == 0) mIsItRunning = 2;
-                else if (mIsItRunning != 2) throw new InvalidOperationException();
+                if (_isItRunning == 0) _isItRunning = 2;
+                else if (_isItRunning != 2) throw new InvalidOperationException();
             }
 
-            if(mLineIndex == 0)
+            if(_lineIndex == 0)
                 PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
 
-            if (mFileLines.Count != 0 && mLineIndex < mFileLines.Count)
-                ExecuteLine(mFileLines.ElementAt(mLineIndex++), form, updateUI);
+            if (_fileLines.Count != 0 && _lineIndex < _fileLines.Count)
+                ExecuteLine(_fileLines.ElementAt(_lineIndex++), form, updateUI);
 
-            if (mLineIndex >= mFileLines.Count)
+            if (_lineIndex >= _fileLines.Count)
             {
                 PuppetMaster.GetInstance().Log("===== Configuration file loading complete =====");
                 form.Invoke(toDisableStepByStep);
@@ -126,13 +126,13 @@ namespace PuppetMaster
                 }
 
                 ConnectionPack thingsToSend = new ConnectionPack(cmd, listUrls);
-                mWhatShouldISentToOperators.Add(opId, thingsToSend);
+                _whatShouldISentToOperators.Add(opId, thingsToSend);
 
                 if (res[3].StartsWith("OP") && !res[3].EndsWith(".data"))
                 {
                     // Put in connection pack of the previous operator the urls of this one. So he can direct its output
                     int op2Id = int.Parse(res[3].Substring(2));
-                    mWhatShouldISentToOperators[op2Id].ReplicaUrlsOutput = listUrls;
+                    _whatShouldISentToOperators[op2Id].ReplicaUrlsOutput = listUrls;
                 }
 
                 PuppetMaster.GetInstance().CreateOperator(opId, listUrls);
@@ -149,12 +149,12 @@ namespace PuppetMaster
         {
             // Commands to operators
             // Send every creation command to the operators
-            if (!mWereOperatorsCreated)
+            if (!_wereOperatorsCreated)
             {
                 PuppetMaster.GetInstance().Log("Creating operators...");
-                foreach (KeyValuePair<int, ConnectionPack> entry in mWhatShouldISentToOperators)
+                foreach (KeyValuePair<int, ConnectionPack> entry in _whatShouldISentToOperators)
                     PCSManager.GetInstance().SendCommand(entry.Value);
-                mWereOperatorsCreated = true;
+                _wereOperatorsCreated = true;
             }
 
             if (cmd.StartsWith("Interval"))

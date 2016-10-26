@@ -17,7 +17,7 @@ namespace ProcessCreationService
         }
     }
 
-    public class ProcessCreationService : MarshalByRefObject, IPCSSlaveLaunch
+    public class ProcessCreationService : MarshalByRefObject, IPcsSlaveLaunch
     {
 
         public ProcessCreationService(string name)

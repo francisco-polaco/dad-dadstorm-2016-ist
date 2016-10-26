@@ -23,40 +23,40 @@ namespace CommonTypes
         void Dispatch(string a);
     }
 
-    public interface IPCSSlaveLaunch
+    public interface IPcsSlaveLaunch
     {
         void Launch(ConnectionPack input);
     }
 
     public class Replica
     {
-        private int opID;
-        private string url;
-        private ISlave proxy;
+        private int _opId;
+        private string _url;
+        private ISlave _proxy;
 
         public int OpID
         {
-            get { return opID; }
-            set { opID = value; }
+            get { return _opId; }
+            set { _opId = value; }
         }
 
         public string Url
         {
-            get { return url; }
-            set { url = value; }
+            get { return _url; }
+            set { _url = value; }
         }
 
         public ISlave Proxy
         {
-            get { return proxy; }
-            set { proxy = value; }
+            get { return _proxy; }
+            set { _proxy = value; }
         }
 
         public Replica(int opID, string url, ISlave proxy)
         {
-            this.opID = opID;
-            this.url = url;
-            this.proxy = proxy;
+            this._opId = opID;
+            this._url = url;
+            this._proxy = proxy;
         }
 
         public Replica()
@@ -68,20 +68,20 @@ namespace CommonTypes
     [System.Serializable]
     public class ConnectionPack
     {
-        private string mCmd;
-        private List<string> mListUrls;
-        private List<string> mReplicaUrlsOutput;
+        private string _cmd;
+        private List<string> _listUrls;
+        private List<string> _replicaUrlsOutput;
 
         public string Cmd
         {
             get
             {
-                return mCmd;
+                return _cmd;
             }
 
             set
             {
-                mCmd = value;
+                _cmd = value;
             }
         }
 
@@ -89,12 +89,12 @@ namespace CommonTypes
         {
             get
             {
-                return mReplicaUrlsOutput;
+                return _replicaUrlsOutput;
             }
 
             set
             {
-                mReplicaUrlsOutput = value;
+                _replicaUrlsOutput = value;
             }
         }
 
@@ -102,31 +102,31 @@ namespace CommonTypes
         {
             get
             {
-                return mListUrls;
+                return _listUrls;
             }
 
             set
             {
-                mListUrls = value;
+                _listUrls = value;
             }
         }
 
         public ConnectionPack(string cmd, List<string> listUrls)
         {
-            mCmd = cmd;
-            mListUrls = listUrls;
-            mReplicaUrlsOutput = new List<string>();
+            _cmd = cmd;
+            _listUrls = listUrls;
+            _replicaUrlsOutput = new List<string>();
         }
 
         public override string ToString()
         {
             string res;
-            res = "Command: " + mCmd;
-            foreach(string str in mListUrls)
+            res = "Command: " + _cmd;
+            foreach(string str in _listUrls)
             {
                 res += "\r\nReplica URL: " + str;
             }
-            foreach (string str in mReplicaUrlsOutput)
+            foreach (string str in _replicaUrlsOutput)
             {
                 res += "\r\nReplica Output URL: " + str;
             }

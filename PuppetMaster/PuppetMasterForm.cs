@@ -9,7 +9,7 @@ namespace PuppetMaster
 
     public partial class PuppetMasterForm : Form
     {
-        private PuppetMaster mPuppetMaster;
+        private PuppetMaster _puppetMaster;
 
         public PuppetMasterForm()
         {
@@ -18,7 +18,7 @@ namespace PuppetMaster
 
         private void PuppetMasterForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if(mPuppetMaster != null) mPuppetMaster.Exit();
+            if(_puppetMaster != null) _puppetMaster.Exit();
         }
 
         private void button_browse_Click(object sender, EventArgs e)
@@ -31,14 +31,14 @@ namespace PuppetMaster
 
         private void button_run_all_Click(object sender, EventArgs e)
         {
-            if (mPuppetMaster == null)
+            if (_puppetMaster == null)
             {
                 if (text_file.Text.Equals(""))
                 {
                     MessageBox.Show("Please select a config file.");
                     return;
                 }
-                mPuppetMaster = PuppetMaster.GetInstance();
+                _puppetMaster = PuppetMaster.GetInstance();
             }
             button_run_all.Enabled = false;
             button_slow_parse.Enabled = false;
@@ -46,26 +46,26 @@ namespace PuppetMaster
             text_file.ReadOnly = true;
             new Thread(() =>
             {
-                mPuppetMaster.SetupFullSpeed(this, new DelAddLog(AddLog), text_file.Text);
+                _puppetMaster.SetupFullSpeed(this, new DelAddLog(AddLog), text_file.Text);
             }).Start();
         }
 
         private void button_slow_parse_Click(object sender, EventArgs e)
         {
-            if (mPuppetMaster == null) {
+            if (_puppetMaster == null) {
                 if (text_file.Text.Equals(""))
                 {
                     MessageBox.Show("Please select a config file.");
                     return;
                 }
-                mPuppetMaster = PuppetMaster.GetInstance();
+                _puppetMaster = PuppetMaster.GetInstance();
             }
             button_run_all.Enabled = false;
             button_browse.Enabled = false;
             text_file.ReadOnly = true;
             new Thread(() =>
             {
-                mPuppetMaster.SetupStepByStep(this, new DelAddLog(AddLog), new DisableStepByStep(DisableStepByStep), text_file.Text);
+                _puppetMaster.SetupStepByStep(this, new DelAddLog(AddLog), new DisableStepByStep(DisableStepByStep), text_file.Text);
             }).Start();
         }
 
