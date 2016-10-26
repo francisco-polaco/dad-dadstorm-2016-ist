@@ -37,6 +37,8 @@
             this.text_config = new System.Windows.Forms.Label();
             this.text_log = new System.Windows.Forms.TextBox();
             this.button_clear_log = new System.Windows.Forms.Button();
+            this.text_command_console = new System.Windows.Forms.TextBox();
+            this.button_run_command = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -120,11 +122,33 @@
             this.button_clear_log.UseVisualStyleBackColor = true;
             this.button_clear_log.Click += new System.EventHandler(this.button_clear_log_Click);
             // 
+            // text_command_console
+            // 
+            this.text_command_console.Location = new System.Drawing.Point(16, 357);
+            this.text_command_console.Name = "text_command_console";
+            this.text_command_console.ReadOnly = true;
+            this.text_command_console.Size = new System.Drawing.Size(380, 20);
+            this.text_command_console.TabIndex = 8;
+            this.text_command_console.KeyDown += new System.Windows.Forms.KeyEventHandler(this.text_command_console_KeyDown);
+            // 
+            // button_run_command
+            // 
+            this.button_run_command.Enabled = false;
+            this.button_run_command.Location = new System.Drawing.Point(402, 356);
+            this.button_run_command.Name = "button_run_command";
+            this.button_run_command.Size = new System.Drawing.Size(75, 23);
+            this.button_run_command.TabIndex = 9;
+            this.button_run_command.Text = "Run";
+            this.button_run_command.UseVisualStyleBackColor = true;
+            this.button_run_command.Click += new System.EventHandler(this.button_run_command_Click);
+            // 
             // PuppetMasterForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(489, 362);
+            this.ClientSize = new System.Drawing.Size(489, 391);
+            this.Controls.Add(this.button_run_command);
+            this.Controls.Add(this.text_command_console);
             this.Controls.Add(this.button_clear_log);
             this.Controls.Add(this.text_log);
             this.Controls.Add(this.text_config);
@@ -153,6 +177,8 @@
         private System.Windows.Forms.Label text_config;
         private System.Windows.Forms.TextBox text_log;
         private System.Windows.Forms.Button button_clear_log;
+        private System.Windows.Forms.TextBox text_command_console;
+        private System.Windows.Forms.Button button_run_command;
     }
 }
 

@@ -43,7 +43,10 @@ namespace PuppetMaster
             button_run_all.Enabled = false;
             button_slow_parse.Enabled = false;
             button_browse.Enabled = false;
+            button_run_command.Enabled = true;
             text_file.ReadOnly = true;
+            text_command_console.ReadOnly = false;
+
             new Thread(() =>
             {
                 _puppetMaster.SetupFullSpeed(this, new DelAddLog(AddLog), text_file.Text);
@@ -75,7 +78,7 @@ namespace PuppetMaster
         }
 
         void AddLog(string log)
-        {
+        { 
             if (text_log.Text == "")
             {
                 text_log.Text = log;
@@ -88,6 +91,26 @@ namespace PuppetMaster
         void DisableStepByStep()
         {
             button_slow_parse.Enabled = false;
+            button_run_command.Enabled = true;
+            text_command_console.ReadOnly = false;
+        }
+
+        private void button_run_command_Click(object sender, EventArgs e)
+        {
+            string cmd = (string)text_command_console.Text.Clone();
+            new Thread(() =>
+            {
+                _puppetMaster.RunCommand(cmd);
+            }).Start();
+            text_command_console.Text = "";
+        }
+
+        private void text_command_console_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                button_run_command_Click(this, new EventArgs());
+            }
         }
     }
 }

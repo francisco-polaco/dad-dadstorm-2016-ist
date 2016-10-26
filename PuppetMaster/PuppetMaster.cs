@@ -83,6 +83,19 @@ namespace PuppetMaster
             _operators.Add(id, new Operator(id, urls));
         }
 
+        public void RunCommand(string cmd)
+        {
+            if (cmd.StartsWith("Wait"))
+            {
+                Log("You cannot run: " + cmd);
+            }
+            else
+            {
+                Log("Executing user's command: " + cmd);
+                ConfigFileProcessor.GetInstance(null).ParseCommand(cmd);
+            }
+        }
+
         public void Start(int opid)
         {
             _operators[opid].Start();
@@ -133,14 +146,14 @@ namespace PuppetMaster
     }
 
 
-    public class PCSManager
+    public class PcsManager
     {
 
-        private static PCSManager _instance = null;
+        private static PcsManager _instance = null;
 
-        public static PCSManager GetInstance()
+        public static PcsManager GetInstance()
         {
-            if (_instance == null) _instance = new PCSManager();
+            if (_instance == null) _instance = new PcsManager();
             return _instance;
         }
 

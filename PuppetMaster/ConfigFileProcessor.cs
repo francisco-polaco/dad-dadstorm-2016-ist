@@ -140,23 +140,22 @@ namespace PuppetMaster
             }
             else
             {
+                // Commands to operators
+                // Send every creation command to the operators
+                if (!_wereOperatorsCreated)
+                {
+                    PuppetMaster.GetInstance().Log("Creating operators...");
+                    foreach (KeyValuePair<int, ConnectionPack> entry in _whatShouldISentToOperators)
+                        PcsManager.GetInstance().SendCommand(entry.Value);
+                    _wereOperatorsCreated = true;
+                }
                 ParseCommand(cmd);
             }
             
         }
 
-        private void ParseCommand(string cmd)
+        public void ParseCommand(string cmd)
         {
-            // Commands to operators
-            // Send every creation command to the operators
-            if (!_wereOperatorsCreated)
-            {
-                PuppetMaster.GetInstance().Log("Creating operators...");
-                foreach (KeyValuePair<int, ConnectionPack> entry in _whatShouldISentToOperators)
-                    PCSManager.GetInstance().SendCommand(entry.Value);
-                _wereOperatorsCreated = true;
-            }
-
             if (cmd.StartsWith("Interval"))
             {
                 string[] res = cmd.Split(' ');
