@@ -132,7 +132,7 @@ namespace PuppetMaster
                 {
                     // Put in connection pack of the previous operator the urls of this one. So he can direct its output
                     int op2Id = int.Parse(res[3].Substring(2));
-                    mWhatShouldISentToOperators[op2Id].ReplicaUrlsInput = listUrls;
+                    mWhatShouldISentToOperators[op2Id].ReplicaUrlsOutput = listUrls;
                 }
 
                 PuppetMaster.GetInstance().CreateOperator(opId, listUrls);
@@ -140,82 +140,86 @@ namespace PuppetMaster
             }
             else
             {
-                // Commands to operators
-                // Send every creation command to the operators
-                if (!mWereOperatorsCreated)
-                {
-                    foreach(KeyValuePair<int, ConnectionPack> entry in mWhatShouldISentToOperators)
-                        PCSManager.GetInstance().SendCommand(entry.Value);
-                    mWereOperatorsCreated = true;
-                }
-
-                if (cmd.StartsWith("Interval"))
-                {
-                    string[] res = cmd.Split(' ');
-                    if (res.Length == 3)
-                    {
-                        PuppetMaster.GetInstance()
-                            .Interval(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
-                    }
-                }
-                else if (cmd.StartsWith("Start"))
-                {
-                    string[] res = cmd.Split(' ');
-                    if (res.Length == 2)
-                    {
-                        PuppetMaster.GetInstance()
-                            .Start(int.Parse(res[1].Substring(2)));
-                    }
-                }
-                else if (cmd.StartsWith("Status"))
-                {
-                    PuppetMaster.GetInstance().Status();
-                }
-                else if (cmd.StartsWith("Wait"))
-                {
-                    string[] res = cmd.Split(' ');
-                    if (res.Length == 2)
-                    {
-                        PuppetMaster.GetInstance()
-                            .Wait(int.Parse(res[1]));
-                    }
-                }
-                else if (cmd.StartsWith("Freeze"))
-                {
-                    string[] res = cmd.Split(' ');
-                    if (res.Length == 3)
-                    {
-                        PuppetMaster.GetInstance()
-                            .Freeze(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
-                    }
-                }
-                else if (cmd.StartsWith("Unfreeze"))
-                {
-                    string[] res = cmd.Split(' ');
-                    if (res.Length == 3)
-                    {
-                        PuppetMaster.GetInstance()
-                            .Unfreeze(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
-                    }
-                }
-                else if (cmd.StartsWith("Crash"))
-                {
-                    string[] res = cmd.Split(' ');
-                    if (res.Length == 3)
-                    {
-                        PuppetMaster.GetInstance()
-                            .Crash(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
-                    }
-                }
-                else
-                {
-                    PuppetMaster.GetInstance().Log("Invalid command.");
-                }
-
+                ParseCommand(cmd);
             }
             
         }
 
+        private void ParseCommand(string cmd)
+        {
+            // Commands to operators
+            // Send every creation command to the operators
+            if (!mWereOperatorsCreated)
+            {
+                PuppetMaster.GetInstance().Log("Creating operators...");
+                foreach (KeyValuePair<int, ConnectionPack> entry in mWhatShouldISentToOperators)
+                    PCSManager.GetInstance().SendCommand(entry.Value);
+                mWereOperatorsCreated = true;
+            }
+
+            if (cmd.StartsWith("Interval"))
+            {
+                string[] res = cmd.Split(' ');
+                if (res.Length == 3)
+                {
+                    PuppetMaster.GetInstance()
+                        .Interval(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
+                }
+            }
+            else if (cmd.StartsWith("Start"))
+            {
+                string[] res = cmd.Split(' ');
+                if (res.Length == 2)
+                {
+                    PuppetMaster.GetInstance()
+                        .Start(int.Parse(res[1].Substring(2)));
+                }
+            }
+            else if (cmd.StartsWith("Status"))
+            {
+                PuppetMaster.GetInstance().Status();
+            }
+            else if (cmd.StartsWith("Wait"))
+            {
+                string[] res = cmd.Split(' ');
+                if (res.Length == 2)
+                {
+                    PuppetMaster.GetInstance()
+                        .Wait(int.Parse(res[1]));
+                }
+            }
+            else if (cmd.StartsWith("Freeze"))
+            {
+                string[] res = cmd.Split(' ');
+                if (res.Length == 3)
+                {
+                    PuppetMaster.GetInstance()
+                        .Freeze(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
+                }
+            }
+            else if (cmd.StartsWith("Unfreeze"))
+            {
+                string[] res = cmd.Split(' ');
+                if (res.Length == 3)
+                {
+                    PuppetMaster.GetInstance()
+                        .Unfreeze(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
+                }
+            }
+            else if (cmd.StartsWith("Crash"))
+            {
+                string[] res = cmd.Split(' ');
+                if (res.Length == 3)
+                {
+                    PuppetMaster.GetInstance()
+                        .Crash(int.Parse(res[1].Substring(2)), int.Parse(res[2]));
+                }
+            }
+            else
+            {
+                PuppetMaster.GetInstance().Log("Invalid command.");
+            }
+        }
     }
 
 }

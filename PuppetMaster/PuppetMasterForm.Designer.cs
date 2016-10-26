@@ -133,6 +133,7 @@
             this.Controls.Add(this.button_browse);
             this.Controls.Add(this.text_file);
             this.Controls.Add(this.label1);
+            this.MaximizeBox = false;
             this.Name = "PuppetMasterForm";
             this.Text = "PuppetMaster";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.PuppetMasterForm_FormClosed);

@@ -124,6 +124,10 @@ namespace PuppetMaster
         internal void Exit()
         {
             if (mLogger != null) mLogger.Exit();
+            foreach(KeyValuePair<int, Operator> entry in mOperators)
+            {
+                entry.Value.Exit();
+            }
         }
 
     }
@@ -131,7 +135,6 @@ namespace PuppetMaster
 
     public class PCSManager
     {
-        //private List<string> mUrlOfPcs = new List<string>();
 
         private static PCSManager mInstance = null;
 
@@ -141,22 +144,21 @@ namespace PuppetMaster
             return mInstance;
         }
 
-        //private PCSManager()
-        //{
-        //    //mUrlOfPcs.Add("tcp://1.2.3.4:10000/pcs");
-        //    //mUrlOfPcs.Add("tcp://1.2.3.5:10000/pcs");
-        //    //mUrlOfPcs.Add("tcp://1.2.3.6:10000/pcs");
-        //    //mUrlOfPcs.Add("tcp://1.2.3.8:10000/pcs");
-        //    //mUrlOfPcs.Add("tcp://1.2.3.9:10000/pcs");
-        //    //mUrlOfPcs.Add("tcp://1.2.3.10:10000/pcs");
-        //}
-
         public void SendCommand(ConnectionPack cp)
         {
-            foreach(string url in cp.ListUrls)
+            //PuppetMaster.GetInstance().Log("============== Connection Pack ============");
+            //PuppetMaster.GetInstance().Log(cp.ToString());
+            //PuppetMaster.GetInstance().Log("===========================================");
+            HashSet<string> set = new HashSet<string>();
+            foreach (string url in cp.ListUrls)
             {
                 int portIndex = url.IndexOf(':', 4); // skip the first : from the tcp protocol
                 string pcsUrl = url.Substring(0, portIndex + 1) + "10000/pcs";
+                set.Add(pcsUrl);
+            }
+
+            foreach (string pcsUrl in set)
+            {
                 PuppetMaster.GetInstance().Log("PCS URL: " + pcsUrl);
                 // Remove comments after pcs implementation
                 //try
@@ -170,6 +172,7 @@ namespace PuppetMaster
                 //    PuppetMaster.GetInstance().Log("Error connecting to PCS with URL: " + pcsUrl);
                 //}
             }
+
         }
     }
 }

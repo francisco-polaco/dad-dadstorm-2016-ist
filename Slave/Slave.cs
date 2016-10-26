@@ -12,7 +12,7 @@ namespace Slave
         }
     }
 
-    public class Slave : MarshalByRefObject, ISlave, RemoteCmdInterface, ILogUpdate
+    public class Slave : MarshalByRefObject, ISlave, IRemoteCmdInterface, ILogUpdate
     {
         private string url;
         private Import importObj;
@@ -111,6 +111,11 @@ namespace Slave
         }
 
         public void Unfreeze()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Exit()
         {
             throw new NotImplementedException();
         }

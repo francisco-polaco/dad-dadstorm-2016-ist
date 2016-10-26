@@ -60,9 +60,17 @@ namespace PuppetMaster
         {
             mSlaveProxyList[repNumber].Unfreeze();
         }
+
+        public void Exit()
+        {
+            foreach (SlaveProxy sp in mSlaveProxyList)
+            {
+                sp.Exit();
+            }
+        }
     }
 
-    class SlaveProxy: RemoteCmdInterface
+    class SlaveProxy: IRemoteCmdInterface
     {
         private string mUrl;
 
@@ -73,50 +81,58 @@ namespace PuppetMaster
 
         public void Freeze()
         {
-            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
-                typeof(RemoteCmdInterface),
+            IRemoteCmdInterface remoteObj = (IRemoteCmdInterface)Activator.GetObject(
+                typeof(IRemoteCmdInterface),
                 mUrl);
             //remoteObj.Freeze();
         }
 
         public void Interval(int ms)
         {
-            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
-                typeof(RemoteCmdInterface),
+            IRemoteCmdInterface remoteObj = (IRemoteCmdInterface)Activator.GetObject(
+                typeof(IRemoteCmdInterface),
                 mUrl);
             //remoteObj.Interval(ms);
         }
 
         public void Start()
         {
-            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
-                typeof(RemoteCmdInterface),
+            IRemoteCmdInterface remoteObj = (IRemoteCmdInterface)Activator.GetObject(
+                typeof(IRemoteCmdInterface),
                 mUrl);
             //remoteObj.Start();
         }
 
         public void Status()
         {
-            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
-                typeof(RemoteCmdInterface),
+            IRemoteCmdInterface remoteObj = (IRemoteCmdInterface)Activator.GetObject(
+                typeof(IRemoteCmdInterface),
                 mUrl);
             //remoteObj.Status();
         }
 
         public void Unfreeze()
         {
-            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
-                typeof(RemoteCmdInterface),
+            IRemoteCmdInterface remoteObj = (IRemoteCmdInterface)Activator.GetObject(
+                typeof(IRemoteCmdInterface),
                 mUrl);
             //remoteObj.Unfreeze();
         }
 
         public void Crash()
         {
-            RemoteCmdInterface remoteObj = (RemoteCmdInterface)Activator.GetObject(
-                typeof(RemoteCmdInterface),
+            IRemoteCmdInterface remoteObj = (IRemoteCmdInterface)Activator.GetObject(
+                typeof(IRemoteCmdInterface),
                 mUrl);
             //remoteObj.Crash();
+        }
+
+        public void Exit()
+        {
+            IRemoteCmdInterface remoteObj = (IRemoteCmdInterface)Activator.GetObject(
+                typeof(IRemoteCmdInterface),
+                mUrl);
+            //remoteObj.Exit();
         }
     }
 }

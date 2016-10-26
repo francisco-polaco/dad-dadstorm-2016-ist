@@ -7,7 +7,7 @@ namespace CommonTypes
         void Update(string log);
     }
 
-    public interface RemoteCmdInterface
+    public interface IRemoteCmdInterface
     {
         void Start();
         void Interval(int ms);
@@ -15,6 +15,7 @@ namespace CommonTypes
         void Crash();
         void Freeze();
         void Unfreeze();
+        void Exit();
     }
 
     public interface ISlave
@@ -69,7 +70,7 @@ namespace CommonTypes
     {
         private string mCmd;
         private List<string> mListUrls;
-        private List<string> mReplicaUrlsInput;
+        private List<string> mReplicaUrlsOutput;
 
         public string Cmd
         {
@@ -84,16 +85,16 @@ namespace CommonTypes
             }
         }
 
-        public List<string> ReplicaUrlsInput
+        public List<string> ReplicaUrlsOutput
         {
             get
             {
-                return mReplicaUrlsInput;
+                return mReplicaUrlsOutput;
             }
 
             set
             {
-                mReplicaUrlsInput = value;
+                mReplicaUrlsOutput = value;
             }
         }
 
@@ -114,8 +115,24 @@ namespace CommonTypes
         {
             mCmd = cmd;
             mListUrls = listUrls;
+            mReplicaUrlsOutput = new List<string>();
         }
 
-      
+        public override string ToString()
+        {
+            string res;
+            res = "Command: " + mCmd;
+            foreach(string str in mListUrls)
+            {
+                res += "\r\nReplica URL: " + str;
+            }
+            foreach (string str in mReplicaUrlsOutput)
+            {
+                res += "\r\nReplica Output URL: " + str;
+            }
+            return res;
+        }
+
+
     }
 }
