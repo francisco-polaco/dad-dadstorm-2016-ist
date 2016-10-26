@@ -59,7 +59,7 @@ namespace PuppetMaster
             file.Close();
         }
 
-        public void ExecuteFullSpeed(Form form, Delegate updateUI)
+        public void ExecuteFullSpeed(Form form, Delegate updateUi)
         {
             lock (this)
             {
@@ -69,13 +69,14 @@ namespace PuppetMaster
             PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
             foreach (string cmd in _fileLines)
             {
-                ExecuteLine(cmd, form, updateUI);
+                ExecuteLine(cmd);
+                _lineIndex++;
             }
             PuppetMaster.GetInstance().Log("===== Configuration file loading complete =====");
 
         }
 
-        public void ExecuteStepByStep(Form form, Delegate updateUI, Delegate toDisableStepByStep)
+        public void ExecuteStepByStep(Form form, Delegate updateUi, Delegate toDisableStepByStep)
         {
             lock (this)
             {
@@ -87,7 +88,7 @@ namespace PuppetMaster
                 PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
 
             if (_fileLines.Count != 0 && _lineIndex < _fileLines.Count)
-                ExecuteLine(_fileLines.ElementAt(_lineIndex++), form, updateUI);
+                ExecuteLine(_fileLines.ElementAt(_lineIndex++));
 
             if (_lineIndex >= _fileLines.Count)
             {
@@ -96,7 +97,7 @@ namespace PuppetMaster
             }
         }
 
-        private void ExecuteLine(string cmd, Form form, Delegate updateUI)
+        private void ExecuteLine(string cmd)
         {
             PuppetMaster.GetInstance().Log("Running config file command: " + cmd);
             if (cmd.StartsWith("Semantics"))

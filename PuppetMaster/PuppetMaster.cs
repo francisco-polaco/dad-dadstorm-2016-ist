@@ -17,6 +17,7 @@ namespace PuppetMaster
         private static int PORT = 10001;
 
         private Log _logger;
+        private bool _loggerOnline = false;
        // private Queue<string> _loggerBuffer = new Queue<string>();
 
         private Dictionary<int, Operator> _operators;
@@ -50,16 +51,25 @@ namespace PuppetMaster
 
         public void SetupFullSpeed(Form form, Delegate toUpdateUi, string configFilePath = @"config.config")
         {
-            _logger = new Log(form, toUpdateUi);
+            if (!_loggerOnline)
+            {
+                _logger = new Log(form, toUpdateUi);
+                RemotingServices.Marshal(_logger, "Log", typeof(ILogUpdate));
+                _loggerOnline = true;
+            }
             ConfigFileProcessor.GetInstance(configFilePath).ExecuteFullSpeed(form, toUpdateUi);
-            RemotingServices.Marshal(_logger, "Log", typeof(ILogUpdate));
+            
         }
 
         public void SetupStepByStep(Form form, Delegate toUpdateUi, Delegate toDisableStepByStep, string configFilePath = @"config.config")
         {
-            _logger = new Log(form, toUpdateUi);
+            if (!_loggerOnline)
+            {
+                _logger = new Log(form, toUpdateUi);
+                RemotingServices.Marshal(_logger, "Log", typeof(ILogUpdate));
+                _loggerOnline = true;
+            }
             ConfigFileProcessor.GetInstance(configFilePath).ExecuteStepByStep(form, toUpdateUi, toDisableStepByStep);
-            RemotingServices.Marshal(_logger, "Log", typeof(ILogUpdate));
         }
 
         public void Log(string toLog)

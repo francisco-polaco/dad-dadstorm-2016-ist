@@ -112,5 +112,21 @@ namespace PuppetMaster
                 button_run_command_Click(this, new EventArgs());
             }
         }
+
+        private void RestartApp()
+        {
+            System.Diagnostics.Process.Start(Application.ExecutablePath); // to start new instance of application
+            this.Close(); //to turn off current app
+        }
+
+        private void restartToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RestartApp();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }
