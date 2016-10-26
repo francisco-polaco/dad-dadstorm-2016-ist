@@ -4,7 +4,8 @@ namespace CommonTypes
 {
     public interface ILogUpdate
     {
-        void Update(string log);
+        //void Update(string log);
+        void ReplicaUpdate(string replicaUrl, List<string> tupleFields);
     }
 
     public interface IRemoteCmdInterface

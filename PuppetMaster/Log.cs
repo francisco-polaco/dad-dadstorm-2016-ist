@@ -48,7 +48,10 @@ namespace PuppetMaster
             mForm.Invoke(mUpdateForm, new object[] { toLog });
         }
 
-        public abstract void Update(string log);
+        public void Update(string log)
+        {
+            PutInQueue(log);
+        }
 
         public void Exit()
         {
@@ -62,7 +65,7 @@ namespace PuppetMaster
             mWritingThread.Abort();
         }
 
-        protected void putInQueue(string toLog)
+        private void PutInQueue(string toLog)
         {
             string log = "[" + DateTime.Now.ToString("HH:mm") + "] - " + toLog;
             lock (this)
@@ -70,6 +73,16 @@ namespace PuppetMaster
                 mToLogQueue.Enqueue(log);
                 Monitor.Pulse(this);
             }
+        }
+
+        public void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
+        {
+            string res = "";
+            foreach (string field in tupleFields)
+            {
+                res += field + ", ";
+            }
+            Update("tuple " + replicaUrl + " " + res.Substring(0, res.Length - 2));
         }
     }
 
@@ -80,11 +93,7 @@ namespace PuppetMaster
         {
         }
 
-        public override void Update(string log)
-        {
-            //filter log
-            putInQueue(log);
-        }
+   
     }
 
     public class FullLog : Log
@@ -93,9 +102,5 @@ namespace PuppetMaster
         {
         }
 
-        public override void Update(string log)
-        {
-            putInQueue(log);
-        }
     }
 }

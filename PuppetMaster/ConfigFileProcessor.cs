@@ -105,16 +105,25 @@ namespace PuppetMaster
             else if (cmd.StartsWith("LoggingLevel"))
             {
                 string[] pieces = cmd.Split(' ');
-                if (pieces.Length == 2 && pieces[1].Equals("light"))
+                if (pieces.Length == 2 && pieces[1].Equals("full"))
+                {
+                    PuppetMaster.GetInstance().Logger = new FullLog(form, updateUI);
+                }
+                else if (pieces.Length == 2 && pieces[1].Equals("light"))
+                {
                     PuppetMaster.GetInstance().Logger = new LightLog(form, updateUI);
-                else PuppetMaster.GetInstance().Logger = new FullLog(form, updateUI);
+                }
+                RemotingServices.Marshal(PuppetMaster.GetInstance().Logger, "Log", typeof(Log));
 
-                
-                RemotingServices.Marshal(PuppetMaster.GetInstance().Logger, "Log",
-                    typeof(Log));
             }
             else if (cmd.StartsWith("OP"))
             {
+                if (PuppetMaster.GetInstance().Logger == null)
+                {
+                    PuppetMaster.GetInstance().Logger = new LightLog(form, updateUI);
+                    PuppetMaster.GetInstance().Log("Logging method not found, assuming light.");
+                    RemotingServices.Marshal(PuppetMaster.GetInstance().Logger, "Log", typeof(Log));
+                }
                 // Operators setup
                 string[] res = cmd.Split(' ');
 

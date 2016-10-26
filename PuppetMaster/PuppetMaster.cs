@@ -50,22 +50,25 @@ namespace PuppetMaster
 
         public void SetupFullSpeed(Form form, Delegate toUpdateUI, string configFilePath = @"config.config")
         {
-            ConfigFileProcessor.GetInstance(configFilePath).ExecuteFullSpeed(form, toUpdateUI); 
+            ConfigFileProcessor.GetInstance(configFilePath).ExecuteFullSpeed(form, toUpdateUI);
         }
 
         public void SetupStepByStep(Form form, Delegate toUpdateUI, Delegate toDisableStepByStep,string configFilePath = @"config.config")
         {
             ConfigFileProcessor.GetInstance(configFilePath).ExecuteStepByStep(form, toUpdateUI, toDisableStepByStep);
+
         }
 
         public void Log(string toLog)
         {
             if (_logger != null)
             {
-                if (_loggerBuffer.Count != 0)
+                lock (this)
                 {
-                    foreach (string s in _loggerBuffer) _logger.Update(s);
-                    _loggerBuffer.Clear();
+                    if (_loggerBuffer.Count != 0){
+                        foreach (string s in _loggerBuffer) _logger.Update(s);
+                        _loggerBuffer.Clear();
+                    }
                 }
                 _logger.Update(toLog);
             }
