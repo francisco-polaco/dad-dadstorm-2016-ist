@@ -19,6 +19,7 @@ namespace PuppetMaster
         private int _lineIndex = 0;
         private volatile uint _isItRunning = 0; // 1 full speed , 2 step by step
         private volatile bool _wereOperatorsCreated = false;
+        private bool _isLogFull = false;
 
         private Dictionary<int, ConnectionPack> _whatShouldISentToOperators 
             = new Dictionary<int, ConnectionPack>();
@@ -107,23 +108,17 @@ namespace PuppetMaster
                 string[] pieces = cmd.Split(' ');
                 if (pieces.Length == 2 && pieces[1].Equals("full"))
                 {
-                    PuppetMaster.GetInstance().Logger = new FullLog(form, updateUI);
+                    _isLogFull = true;
                 }
-                else if (pieces.Length == 2 && pieces[1].Equals("light"))
-                {
-                    PuppetMaster.GetInstance().Logger = new LightLog(form, updateUI);
-                }
-                RemotingServices.Marshal(PuppetMaster.GetInstance().Logger, "Log", typeof(Log));
+                //else if (pieces.Length == 2 && pieces[1].Equals("light"))
+                //{
+                //    _isLogFull = false;
+                //}
 
             }
             else if (cmd.StartsWith("OP"))
             {
-                if (PuppetMaster.GetInstance().Logger == null)
-                {
-                    PuppetMaster.GetInstance().Logger = new LightLog(form, updateUI);
-                    PuppetMaster.GetInstance().Log("Logging method not found, assuming light.");
-                    RemotingServices.Marshal(PuppetMaster.GetInstance().Logger, "Log", typeof(Log));
-                }
+
                 // Operators setup
                 string[] res = cmd.Split(' ');
 
@@ -134,7 +129,7 @@ namespace PuppetMaster
                     listUrls.Add(res[i].Replace(",", string.Empty));
                 }
 
-                ConnectionPack thingsToSend = new ConnectionPack(cmd, listUrls);
+                ConnectionPack thingsToSend = new ConnectionPack(cmd, _isLogFull, listUrls);
                 _whatShouldISentToOperators.Add(opId, thingsToSend);
 
                 if (res[3].StartsWith("OP") && !res[3].EndsWith(".data"))

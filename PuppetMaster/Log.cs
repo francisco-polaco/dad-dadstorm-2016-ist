@@ -6,46 +6,44 @@ using System.Windows.Forms;
 
 namespace PuppetMaster
 {
-    public abstract class Log : MarshalByRefObject , CommonTypes.ILogUpdate
+    public class Log : MarshalByRefObject , CommonTypes.ILogUpdate
     {
-        protected string mLogFilePath;
-        protected Queue<string> mToLogQueue = new Queue<string>();
-        protected volatile static bool mIsThreadToExit = false;
-        private Thread mWritingThread;
-
-        private Form mForm;
-        private Delegate mUpdateForm;
+        private string _logFilePath;
+        private Queue<string> _toLogQueue = new Queue<string>();
+        private static volatile bool _isThreadToExit = false;
+        private Thread _writingThread;
+        private Form _form;
+        private Delegate _updateForm;
 
         public Log() {}
-
         public Log(Form form, Delegate updateForm, string logFilePath = @"log.log")
         {
-            mForm = form;
-            mUpdateForm = updateForm;
-            mLogFilePath = logFilePath;
-            mWritingThread = new Thread(() =>
+            _form = form;
+            _updateForm = updateForm;
+            _logFilePath = logFilePath;
+            _writingThread = new Thread(() =>
                 {
-                    while (mIsThreadToExit == false)
+                    while (_isThreadToExit == false)
                     {
                         string s = "";
 
                         lock (this) { 
-                            if (mToLogQueue.Count == 0) Monitor.Wait(this);
-                            else s = mToLogQueue.Dequeue();
+                            if (_toLogQueue.Count == 0) Monitor.Wait(this);
+                            else s = _toLogQueue.Dequeue();
                         }
                         AppendToLog(s);
                     }
                 });
-            mWritingThread.Start();
+            _writingThread.Start();
         }
         private void AppendToLog(string toLog)
         {
             using (System.IO.StreamWriter file =
-            new System.IO.StreamWriter(mLogFilePath, true))
+            new System.IO.StreamWriter(_logFilePath, true))
             {
                 file.WriteLine(toLog);
             }
-            mForm.Invoke(mUpdateForm, new object[] { toLog });
+            _form.Invoke(_updateForm, new object[] { toLog });
         }
 
         public void Update(string log)
@@ -55,14 +53,14 @@ namespace PuppetMaster
 
         public void Exit()
         {
-            //mIsThreadToExit = true;
+            //_isThreadToExit = true;
             //lock (this)
             //{
             //    Monitor.PulseAll(this);
             //}
             //// This need to be fixed
-            // mWritingThread.Join(); 
-            mWritingThread.Abort();
+            //_writingThread.Join();
+            _writingThread.Abort();
         }
 
         private void PutInQueue(string toLog)
@@ -70,7 +68,7 @@ namespace PuppetMaster
             string log = "[" + DateTime.Now.ToString("HH:mm") + "] - " + toLog;
             lock (this)
             {
-                mToLogQueue.Enqueue(log);
+                _toLogQueue.Enqueue(log);
                 Monitor.Pulse(this);
             }
         }
@@ -84,23 +82,5 @@ namespace PuppetMaster
             }
             Update("tuple " + replicaUrl + " " + res.Substring(0, res.Length - 2));
         }
-    }
-
-
-    public class LightLog : Log
-    {
-        public LightLog(Form form, Delegate updateForm, string logFilePath = @"log.log"):base(form, updateForm, logFilePath)
-        {
-        }
-
-   
-    }
-
-    public class FullLog : Log
-    {
-        public FullLog(Form form, Delegate updateForm, string logFilePath = @"log.log"):base(form, updateForm, logFilePath)
-        {
-        }
-
     }
 }

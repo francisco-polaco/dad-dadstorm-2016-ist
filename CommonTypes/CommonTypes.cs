@@ -70,8 +70,16 @@ namespace CommonTypes
     public class ConnectionPack
     {
         private string _cmd;
+        private bool _isLogFull;
         private List<string> _listUrls;
         private List<string> _replicaUrlsOutput;
+        public ConnectionPack(string cmd, bool isLogFull, List<string> listUrls)
+        {
+            _cmd = cmd;
+            _isLogFull = isLogFull;
+            _listUrls = listUrls;
+            _replicaUrlsOutput = new List<string>();
+        }
 
         public string Cmd
         {
@@ -84,6 +92,12 @@ namespace CommonTypes
             {
                 _cmd = value;
             }
+        }
+
+        public bool IsLogFull
+        {
+            get { return _isLogFull; }
+            set { _isLogFull = value; }
         }
 
         public List<string> ReplicaUrlsOutput
@@ -110,13 +124,6 @@ namespace CommonTypes
             {
                 _listUrls = value;
             }
-        }
-
-        public ConnectionPack(string cmd, List<string> listUrls)
-        {
-            _cmd = cmd;
-            _listUrls = listUrls;
-            _replicaUrlsOutput = new List<string>();
         }
 
         public override string ToString()

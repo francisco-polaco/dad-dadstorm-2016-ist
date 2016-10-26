@@ -17,7 +17,7 @@ namespace PuppetMaster
         private static int PORT = 10001;
 
         private Log _logger;
-        private Queue<string> _loggerBuffer = new Queue<string>();
+       // private Queue<string> _loggerBuffer = new Queue<string>();
 
         private Dictionary<int, Operator> _operators;
 
@@ -48,37 +48,41 @@ namespace PuppetMaster
             }
         }
 
-        public void SetupFullSpeed(Form form, Delegate toUpdateUI, string configFilePath = @"config.config")
+        public void SetupFullSpeed(Form form, Delegate toUpdateUi, string configFilePath = @"config.config")
         {
-            ConfigFileProcessor.GetInstance(configFilePath).ExecuteFullSpeed(form, toUpdateUI);
+            _logger = new Log(form, toUpdateUi);
+            ConfigFileProcessor.GetInstance(configFilePath).ExecuteFullSpeed(form, toUpdateUi);
+            RemotingServices.Marshal(_logger, "Log", typeof(ILogUpdate));
         }
 
-        public void SetupStepByStep(Form form, Delegate toUpdateUI, Delegate toDisableStepByStep,string configFilePath = @"config.config")
+        public void SetupStepByStep(Form form, Delegate toUpdateUi, Delegate toDisableStepByStep, string configFilePath = @"config.config")
         {
-            ConfigFileProcessor.GetInstance(configFilePath).ExecuteStepByStep(form, toUpdateUI, toDisableStepByStep);
-
+            _logger = new Log(form, toUpdateUi);
+            ConfigFileProcessor.GetInstance(configFilePath).ExecuteStepByStep(form, toUpdateUi, toDisableStepByStep);
+            RemotingServices.Marshal(_logger, "Log", typeof(ILogUpdate));
         }
 
         public void Log(string toLog)
         {
-            if (_logger != null)
-            {
-                lock (this)
-                {
-                    if (_loggerBuffer.Count != 0){
-                        foreach (string s in _loggerBuffer) _logger.Update(s);
-                        _loggerBuffer.Clear();
-                    }
-                }
-                _logger.Update(toLog);
-            }
-            else
-            {
-                lock (this)
-                {
-                    _loggerBuffer.Enqueue(toLog);
-                }
-            }
+            _logger.Update(toLog);
+            //if (_logger != null)
+            //{
+            //    lock (this)
+            //    {
+            //        if (_loggerBuffer.Count != 0){
+            //            foreach (string s in _loggerBuffer) _logger.Update(s);
+            //            _loggerBuffer.Clear();
+            //        }
+            //    }
+            //    _logger.Update(toLog);
+            //}
+            //else
+            //{
+            //    lock (this)
+            //    {
+            //        _loggerBuffer.Enqueue(toLog);
+            //    }
+            //}
         }
 
         public void CreateOperator(int id, List<string> urls)
