@@ -6,6 +6,10 @@ namespace PuppetMaster
 {
     public delegate void DelAddLog(string log);
     public delegate void DisableStepByStep();
+    public delegate void PrepareProgBar(int max);
+    public delegate void IncrementProgBar(int value);
+
+
 
     public partial class PuppetMasterForm : Form
     {
@@ -49,7 +53,8 @@ namespace PuppetMaster
 
             new Thread(() =>
             {
-                _puppetMaster.SetupFullSpeed(this, new DelAddLog(AddLog), text_file.Text);
+                _puppetMaster.SetupFullSpeed(this, new DelAddLog(AddLog), 
+                    new PrepareProgBar(PrepareProgressBar), new IncrementProgBar(IncrementProgressBar), text_file.Text);
             }).Start();
         }
 
@@ -68,7 +73,9 @@ namespace PuppetMaster
             text_file.ReadOnly = true;
             new Thread(() =>
             {
-                _puppetMaster.SetupStepByStep(this, new DelAddLog(AddLog), new DisableStepByStep(DisableStepByStep), text_file.Text);
+                _puppetMaster.SetupStepByStep(this, new DelAddLog(AddLog), 
+                    new DisableStepByStep(DisableStepByStep), new PrepareProgBar(PrepareProgressBar), new IncrementProgBar(IncrementProgressBar), 
+                    text_file.Text);
             }).Start();
         }
 
@@ -93,6 +100,18 @@ namespace PuppetMaster
             button_slow_parse.Enabled = false;
             button_run_command.Enabled = true;
             text_command_console.ReadOnly = false;
+        }
+
+        void PrepareProgressBar(int max)
+        {
+            progress_bar.Style = ProgressBarStyle.Continuous;
+            progress_bar.Maximum = max;
+            progress_bar.Value = 0;
+        }
+
+        void IncrementProgressBar(int value)
+        {
+            progress_bar.Value = value;
         }
 
         private void button_run_command_Click(object sender, EventArgs e)

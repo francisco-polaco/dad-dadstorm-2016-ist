@@ -49,7 +49,8 @@ namespace PuppetMaster
             }
         }
 
-        public void SetupFullSpeed(Form form, Delegate toUpdateUi, string configFilePath = @"config.config")
+        public void SetupFullSpeed(Form form, Delegate toUpdateUi, Delegate toPreparePBar, 
+            Delegate toIncrementProgBar, string configFilePath = @"config.config")
         {
             if (!_loggerOnline)
             {
@@ -57,11 +58,13 @@ namespace PuppetMaster
                 RemotingServices.Marshal(_logger, "Log", typeof(ILogUpdate));
                 _loggerOnline = true;
             }
-            ConfigFileProcessor.GetInstance(configFilePath).ExecuteFullSpeed(form, toUpdateUi);
+            ConfigFileProcessor.GetInstance(configFilePath)
+                .ExecuteFullSpeed(form, toUpdateUi, toPreparePBar, toIncrementProgBar);
             
         }
 
-        public void SetupStepByStep(Form form, Delegate toUpdateUi, Delegate toDisableStepByStep, string configFilePath = @"config.config")
+        public void SetupStepByStep(Form form, Delegate toUpdateUi, Delegate toDisableStepByStep,
+            Delegate toPreparePBar, Delegate toIncrementProgBar, string configFilePath = @"config.config")
         {
             if (!_loggerOnline)
             {
@@ -69,7 +72,8 @@ namespace PuppetMaster
                 RemotingServices.Marshal(_logger, "Log", typeof(ILogUpdate));
                 _loggerOnline = true;
             }
-            ConfigFileProcessor.GetInstance(configFilePath).ExecuteStepByStep(form, toUpdateUi, toDisableStepByStep);
+            ConfigFileProcessor.GetInstance(configFilePath)
+                .ExecuteStepByStep(form, toUpdateUi, toDisableStepByStep, toPreparePBar, toIncrementProgBar);
         }
 
         public void Log(string toLog)

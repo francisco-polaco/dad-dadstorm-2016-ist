@@ -59,7 +59,7 @@ namespace PuppetMaster
             file.Close();
         }
 
-        public void ExecuteFullSpeed(Form form, Delegate updateUi)
+        public void ExecuteFullSpeed(Form form, Delegate updateUi, Delegate toPreparePBar, Delegate toIncrementProgBar)
         {
             lock (this)
             {
@@ -67,16 +67,19 @@ namespace PuppetMaster
                 else if(_isItRunning != 1) throw new InvalidOperationException();
             }
             PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
+            form.Invoke(toPreparePBar, _fileLines.Count);
             foreach (string cmd in _fileLines)
             {
                 ExecuteLine(cmd);
                 _lineIndex++;
+                form.Invoke(toIncrementProgBar, _lineIndex);
+
             }
             PuppetMaster.GetInstance().Log("===== Configuration file loading complete =====");
 
         }
 
-        public void ExecuteStepByStep(Form form, Delegate updateUi, Delegate toDisableStepByStep)
+        public void ExecuteStepByStep(Form form, Delegate updateUi, Delegate toDisableStepByStep, Delegate toPreparePBar, Delegate toIncrementProgBar)
         {
             lock (this)
             {
@@ -84,11 +87,15 @@ namespace PuppetMaster
                 else if (_isItRunning != 2) throw new InvalidOperationException();
             }
 
-            if(_lineIndex == 0)
+            if (_lineIndex == 0)
+            {
+                form.Invoke(toPreparePBar, _fileLines.Count);
                 PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
-
+            }
             if (_fileLines.Count != 0 && _lineIndex < _fileLines.Count)
                 ExecuteLine(_fileLines.ElementAt(_lineIndex++));
+            
+            form.Invoke(toIncrementProgBar, _lineIndex);
 
             if (_lineIndex >= _fileLines.Count)
             {
