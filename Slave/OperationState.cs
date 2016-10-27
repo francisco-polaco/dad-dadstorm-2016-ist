@@ -16,9 +16,8 @@ namespace Slave
             throw new NotImplementedException();
         }
 
-        public override void Update(string toUpdate)
+        public override void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
         {
-            // TO DO
             throw new NotImplementedException();
         }
     }
@@ -44,9 +43,8 @@ namespace Slave
             throw new NotImplementedException();
         }
 
-        public override void Update(string toUpdate)
+        public override void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
         {
-            // TO DO
             throw new NotImplementedException();
         }
     }

@@ -1,5 +1,6 @@
 ﻿using CommonTypes;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Slave
 {
@@ -19,6 +20,7 @@ namespace Slave
 
         public abstract void Dispatch(string input);
 
-        public abstract void Update(string toUpdate);
+        public abstract void ReplicaUpdate(string replicaUrl, List<string> tupleFields);
+
     }
 }

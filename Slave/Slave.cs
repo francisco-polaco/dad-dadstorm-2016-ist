@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using CommonTypes;
 
 namespace Slave
@@ -78,12 +79,6 @@ namespace Slave
             state.Dispatch(input);
         }
 
-        public void Update(string toUpdate)
-        {
-            if (pupetLogProxy != null)
-                state.Update(toUpdate);
-        }
-
         public void Start()
         {
             init();
@@ -116,6 +111,11 @@ namespace Slave
         }
 
         public void Exit()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
         {
             throw new NotImplementedException();
         }
