@@ -40,8 +40,8 @@ namespace ProcessCreationService
             List<string> downstream_urls = input.ReplicaUrlsOutput; // contains empty strings right???
 
             // split command by keywords
-            string pattern = @"INPUT_OPS|REP_FACT|ROUTING|ADDRESS|OPERATOR_SPEC|\s";
-            string[] tokens = Regex.Split(cmd, pattern).Where(s => s != String.Empty).ToArray<string>(); ;
+            string pattern = @"INPUT_OPS|REP_FACT|ROUTING|ADDRESS|OPERATOR_SPEC";
+            string[] tokens = Regex.Split(cmd, pattern).Where(s => s != String.Empty).ToArray<string>();
 
             // splitting by 5 keywords should generate 6 tokens
             if (tokens.Length != 6)
@@ -88,10 +88,10 @@ namespace ProcessCreationService
             Route routeObj;
 
             // tokenize routing policy
-            string routingPattern = @"(\d+)|\s"; // TO DO - check if pattern works
-            string[] routingTokens = Regex.Split(tokens[3], routingPattern).Where(s => s != String.Empty).ToArray<string>(); ;
+            string routingPattern = @"[)(\s]";
+            string[] routingTokens = Regex.Split(tokens[3], routingPattern).Where(s => s != String.Empty).ToArray<string>();
 
-            //routeObj = routingFactory.GetRouting(routingTokens, downstream_urls);
+            routeObj = routingFactory.GetRouting(routingTokens, downstream_urls);
 
             /*** create processing object ***/
             AbstractFactory processingFactory = new ProcessingFactory();
@@ -112,13 +112,6 @@ namespace ProcessCreationService
 
             foreach (string url in plain_urls)
                 new Slave.Slave(importObj, routeObj, processObj, url);
-
-            // TO DO
-
-            // Márcio
-            // Deves criar os objectos a partir das factories, dentro do ficheiro factories
-            // tens um summary que diz o que cada objecto precisa, ou seja que params eu assumo.
-            // Depois passas ao constructor do Slave, o url no slave é nome completo dele.
 
         }
     }
