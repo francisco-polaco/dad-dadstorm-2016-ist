@@ -1,57 +1,104 @@
-﻿using CommonTypes;
+﻿using System;
+using System.Collections;
+using CommonTypes;
 using System.Collections.Generic;
+using System.Net.Sockets;
 
 namespace Slave
 {
-    public class Primary : Route
+    public abstract class RouteParent : Route
     {
-        private List<Replica> replica;
+        public abstract void Route(string input);
 
-        public Primary(List<Replica> replica)
+        /// <summary>
+        /// Assumes tcp channel created in Slave, since it is used by it!
+        /// </summary>
+        /// <param name="urls"></param>
+        /// <returns></returns>
+        public List<ISlave> GetDownstreamReplicas(List<string> urls)
         {
-            this.replica = replica;
+            List<ISlave> output = new List<ISlave>();
+            foreach (var url in urls)
+            {
+                var replica = (ISlave)Activator.GetObject(typeof(ISlave), url);
+                output.Add(replica);
+            }
+            return output;
         }
 
-        public void Route(string input)
+    }
+
+    public class Primary : RouteParent, Route
+    {
+        private List<string> urls;
+
+        public Primary(List<string> urls)
         {
-            replica[0].Proxy.Dispatch(input);
+            this.urls = urls;
+        }
+
+        public override void Route(string input)
+        {
+            try
+            {
+                GetDownstreamReplicas(urls)[0].Dispatch(input);
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("Could not locate " + urls[0]);
+            }
+            
         }
     }
 
-    public class Random : Route
+    public class Random : RouteParent, Route
     {
-        private List<Replica> replica;
+        private List<string> urls;
 
-        public Random(List<Replica> replica)
+        public Random(List<string> urls)
         {
-            this.replica = replica;
+            this.urls = urls;
         }
 
-        public void Route(string input)
+        public override void Route(string input)
         {
             System.Random rnd = new System.Random();
             // rnd.Next(replica.Count) - number between [0;replica.count[
-            int randomInt = rnd.Next(replica.Count);
-            replica[randomInt].Proxy.Dispatch(input);
+            int randomInt = rnd.Next(urls.Count);
+            try
+            {
+                GetDownstreamReplicas(urls)[randomInt].Dispatch(input);
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("Could not locate " + urls[randomInt]);
+            }
         }
     }
 
-    public class Hashing : Route
+    public class Hashing : RouteParent, Route
     {
-        private List<Replica> replica;
+        private List<string> urls;
         private int fieldID;
 
-        public Hashing(List<Replica> replica, string fieldID)
+        public Hashing(List<string> urls, string fieldID)
         {
-            this.replica = replica;
+            this.urls = urls;
             this.fieldID = int.Parse(fieldID);
         }
 
-        public void Route(string input)
+        public override void Route(string input)
         {
             string[] content = input.Split(',');
             int hashNumber = (content[fieldID].Trim().GetHashCode())%(content.Length - 1);
-            replica[hashNumber].Proxy.Dispatch(input);
+            try
+            {
+                GetDownstreamReplicas(urls)[hashNumber].Dispatch(input);
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("Could not locate " + urls[hashNumber]);
+            }
         }
     }
 }

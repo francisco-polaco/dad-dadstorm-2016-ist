@@ -29,43 +29,6 @@ namespace CommonTypes
         void Launch(ConnectionPack input);
     }
 
-    public class Replica
-    {
-        private int _opId;
-        private string _url;
-        private ISlave _proxy;
-
-        public int OpID
-        {
-            get { return _opId; }
-            set { _opId = value; }
-        }
-
-        public string Url
-        {
-            get { return _url; }
-            set { _url = value; }
-        }
-
-        public ISlave Proxy
-        {
-            get { return _proxy; }
-            set { _proxy = value; }
-        }
-
-        public Replica(int opID, string url, ISlave proxy)
-        {
-            this._opId = opID;
-            this._url = url;
-            this._proxy = proxy;
-        }
-
-        public Replica()
-        {
-        }
-    }
-
-
     [System.Serializable]
     public class ConnectionPack
     {
