@@ -36,8 +36,8 @@ namespace ProcessCreationService
         {
 
             string cmd = input.Cmd;
-            List<string> urls = input.ListUrls; // contains empty strings right???
-            List<string> downstream_urls = input.ReplicaUrlsOutput; // contains empty strings right???
+            List<string> urls = input.ListUrls; 
+            List<string> downstream_urls = input.ReplicaUrlsOutput;
 
             // split command by keywords
             string pattern = @"INPUT_OPS|REP_FACT|ROUTING|ADDRESS|OPERATOR_SPEC";

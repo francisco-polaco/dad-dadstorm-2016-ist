@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using CommonTypes;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting;
+using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace Slave
 {
@@ -20,7 +25,7 @@ namespace Slave
         private Route routeObj;
         private Process processObj;
         private State state;
-        private ILogUpdate pupetLogProxy;
+        private ILogUpdate puppetLogProxy;
 
 
         public Slave(Import importObj, Route routeObj, Process processObj, string url)
@@ -46,9 +51,9 @@ namespace Slave
             set { state = value; }
         }
             
-        public ILogUpdate PupetLogProxy
+        public ILogUpdate PuppetLogProxy
         {
-            get { return pupetLogProxy; }
+            get { return puppetLogProxy; }
         }
 
         public Import ImportObj
@@ -73,9 +78,22 @@ namespace Slave
 
         public void init()
         {
-            // TO DO 
+            // get port
+            int portStart = this.url.IndexOf(':', 4) + 1; // index of first digit
+            int portLength = this.url.IndexOf("/", portStart) - portStart; // number of digits
+            int port = int.Parse(url.Substring(portStart, portLength));
+
             // init server
-            // init client to log pupetLogProxy
+            TcpChannel channel = new TcpChannel(port);
+            ChannelServices.RegisterChannel(channel, true);
+            RemotingServices.Marshal(this, this.url, typeof(Slave));
+            Console.WriteLine("Slave with url " + url + " is listening!");
+
+            // init client to log puppetLogProxy
+           puppetLogProxy = Activator.GetObject(typeof(ILogUpdate), puppetMasterUrl);
+
+            if (puppetLogProxy == null)
+                System.Console.WriteLine("Could not connect to PuppetMaster on " + puppetMasterUrl);
         }
 
         public void Dispatch(string input)
