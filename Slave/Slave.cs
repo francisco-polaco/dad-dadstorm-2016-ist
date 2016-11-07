@@ -26,9 +26,10 @@ namespace Slave
         private Process processObj;
         private State state;
         private ILogUpdate puppetLogProxy;
+        private string puppetMasterUrl;
 
 
-        public Slave(Import importObj, Route routeObj, Process processObj, string url)
+        public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl)
         {
             this.importObj = importObj;
             this.routeObj = routeObj;
@@ -43,6 +44,12 @@ namespace Slave
         {
             get { return url; }
             set { url = value; }
+        }
+
+        public string PuppetMasterUrl
+        {
+            get { return puppetMasterUrl; }
+            set { puppetMasterUrl = value; }
         }
 
         public State State
@@ -86,11 +93,11 @@ namespace Slave
             // init server
             TcpChannel channel = new TcpChannel(port);
             ChannelServices.RegisterChannel(channel, true);
-            RemotingServices.Marshal(this, this.url, typeof(Slave));
+            RemotingServices.Marshal(this, "slave", typeof(Slave));
             Console.WriteLine("Slave with url " + url + " is listening!");
 
             // init client to log puppetLogProxy
-           puppetLogProxy = Activator.GetObject(typeof(ILogUpdate), puppetMasterUrl);
+           puppetLogProxy = (ILogUpdate) Activator.GetObject(typeof(ILogUpdate), puppetMasterUrl);
 
             if (puppetLogProxy == null)
                 System.Console.WriteLine("Could not connect to PuppetMaster on " + puppetMasterUrl);
