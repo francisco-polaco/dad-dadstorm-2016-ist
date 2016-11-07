@@ -2,6 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
@@ -137,7 +140,11 @@ namespace PuppetMaster
                     listUrls.Add(res[i].Replace(",", string.Empty));
                 }
 
-                ConnectionPack thingsToSend = new ConnectionPack(cmd, _isLogFull, listUrls);
+
+                IPAddress ip = Dns.GetHostEntry(Environment.MachineName).AddressList.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork);
+                string myLogUrl = "tcp://" + ip + ":" + PuppetMaster.Port + "/" + PuppetMaster.RemoteName;
+                PuppetMaster.GetInstance().Log("IP Sent for PCS: " + myLogUrl);
+                ConnectionPack thingsToSend = new ConnectionPack(cmd, _isLogFull, listUrls, myLogUrl);
                 _whatShouldISentToOperators.Add(opId, thingsToSend);
 
                 if (res[3].StartsWith("OP") && !res[3].EndsWith(".data"))

@@ -14,7 +14,8 @@ namespace PuppetMaster
 {
     public class PuppetMaster
     {
-        private static int PORT = 10001;
+        public const int Port = 10001;
+        public const string RemoteName = "log";
 
         private Log _logger;
         private bool _loggerOnline = false;
@@ -33,7 +34,7 @@ namespace PuppetMaster
         private PuppetMaster()
         {
             _operators = new Dictionary<int, Operator>();
-            ChannelServices.RegisterChannel(new TcpChannel(PORT), false);
+            ChannelServices.RegisterChannel(new TcpChannel(Port), false);
         }
 
         public Log Logger
@@ -55,7 +56,7 @@ namespace PuppetMaster
             if (!_loggerOnline)
             {
                 _logger = new Log(form, toUpdateUi);
-                RemotingServices.Marshal(_logger, "Log", typeof(ILogUpdate));
+                RemotingServices.Marshal(_logger, RemoteName, typeof(ILogUpdate));
                 _loggerOnline = true;
             }
             ConfigFileProcessor.GetInstance(configFilePath)
