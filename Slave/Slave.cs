@@ -23,6 +23,17 @@ namespace Slave
         private ILogUpdate pupetLogProxy;
 
 
+        public Slave(Import importObj, Route routeObj, Process processObj, string url)
+        {
+            this.importObj = importObj;
+            this.routeObj = routeObj;
+            this.processObj = processObj;
+            this.url = url;
+            state = new UnfrozenState(this);
+        }
+
+        // getters, setters
+
         public string Url
         {
             get { return url; }
@@ -57,16 +68,9 @@ namespace Slave
             get { return routeObj; }
             set { routeObj = value; }
         }
-
-        public Slave(Import importObj, Route routeObj, Process processObj, string url)
-        {
-            this.importObj = importObj;
-            this.routeObj = routeObj;
-            this.processObj = processObj;
-            this.url = url;
-            state = new UnfrozenState(this);
-        }
         
+        // other methods
+
         public void init()
         {
             // TO DO 
