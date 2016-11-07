@@ -36,11 +36,14 @@ namespace CommonTypes
         private bool _isLogFull;
         private List<string> _listUrls;
         private List<string> _replicaUrlsOutput;
-        public ConnectionPack(string cmd, bool isLogFull, List<string> listUrls)
+        private string _puppetMasterUrl;
+
+        public ConnectionPack(string cmd, bool isLogFull, List<string> listUrls, string puppetMasterUrl)
         {
             _cmd = cmd;
             _isLogFull = isLogFull;
             _listUrls = listUrls;
+            _puppetMasterUrl = puppetMasterUrl;
             _replicaUrlsOutput = new List<string>();
         }
 
@@ -54,6 +57,19 @@ namespace CommonTypes
             set
             {
                 _cmd = value;
+            }
+        }
+
+        public string PuppetMasterUrl
+        {
+            get
+            {
+                return _puppetMasterUrl;
+            }
+
+            set
+            {
+                _puppetMasterUrl = value;
             }
         }
 
