@@ -111,7 +111,7 @@ namespace ProcessCreationService
             string[] plain_urls = urls.ToArray().Where(s => s != String.Empty).ToArray<string>();
 
             foreach (string url in plain_urls)
-                new Slave.Slave(importObj, routeObj, processObj, url);
+                new Slave.Slave(importObj, routeObj, processObj, url, input.PuppetMasterUrl, input.IsLogFull);
 
         }
     }

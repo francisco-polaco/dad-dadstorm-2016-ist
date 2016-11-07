@@ -27,14 +27,17 @@ namespace Slave
         private State state;
         private ILogUpdate puppetLogProxy;
         private string puppetMasterUrl;
+        bool isLogFull;
 
 
-        public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl)
+        public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel)
         {
             this.importObj = importObj;
             this.routeObj = routeObj;
             this.processObj = processObj;
             this.url = url;
+            this.puppetMasterUrl = puppetMasterUrl;
+            this.isLogFull = logLevel;
             state = new UnfrozenState(this);
         }
 
@@ -80,6 +83,12 @@ namespace Slave
             get { return routeObj; }
             set { routeObj = value; }
         }
+
+        public bool IsLogFull
+        {
+            get { return isLogFull;  }
+            set { isLogFull = value; }
+        }
         
         // other methods
 
@@ -107,6 +116,8 @@ namespace Slave
         {
             state.Dispatch(input);
         }
+
+        // puppet master commands
 
         public void Start()
         {
@@ -146,7 +157,7 @@ namespace Slave
 
         public void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
         {
-            throw new NotImplementedException();
+            
         }
     }
 }
