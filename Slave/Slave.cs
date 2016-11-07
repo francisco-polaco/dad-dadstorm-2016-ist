@@ -4,8 +4,8 @@ using CommonTypes;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
-using System.Text.RegularExpressions;
-using System.Linq;
+using System.Threading;
+
 
 namespace Slave
 {
@@ -28,6 +28,7 @@ namespace Slave
         private ILogUpdate puppetLogProxy;
         private string puppetMasterUrl;
         bool isLogFull;
+        Queue<string> jobQueue;
 
 
         public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel)
@@ -39,6 +40,7 @@ namespace Slave
             this.puppetMasterUrl = puppetMasterUrl;
             this.isLogFull = logLevel;
             state = new UnfrozenState(this);
+            jobQueue = new Queue<string>();
         }
 
         // getters, setters
@@ -112,6 +114,7 @@ namespace Slave
                 System.Console.WriteLine("Could not connect to PuppetMaster on " + puppetMasterUrl);
         }
 
+        // do stuff
         public void Dispatch(string input)
         {
             state.Dispatch(input);
@@ -119,45 +122,75 @@ namespace Slave
 
         // puppet master commands
 
+        // start processing
         public void Start()
         {
             init();
             Dispatch(null);
         }
 
+        // sleep ms milliseconds
         public void Interval(int ms)
         {
-            throw new NotImplementedException();
+            Thread.Sleep(ms);
         }
 
+        // print status to console
         public void Status()
         {
-            throw new NotImplementedException();
+            System.Console.WriteLine("Slave at " + url + " is up and running!");
         }
 
+        // crash process
         public void Crash()
         {
-            throw new NotImplementedException();
+            try
+            {
+                System.Console.WriteLine("Slave " + url + " got crash command...");
+                //Thread.Abort(); // NOT WORKING!!!
+            }
+            catch (ThreadAbortException ex)
+            {
+                System.Console.WriteLine("Slave " + url + " crashing...");
+            }
         }
 
+        // change state to frozen
         public void Freeze()
         {
-            throw new NotImplementedException();
+            state = new FrozenState(this);
         }
 
+        // change state to unfrozen
         public void Unfreeze()
         {
-            throw new NotImplementedException();
+            state = new UnfrozenState(this);
+            state.Dispatch(null);
         }
 
+        // exit gracefully
         public void Exit()
         {
-            throw new NotImplementedException();
+            try
+            {
+                System.Console.WriteLine("Slave " + url + " got exit command...");
+                //Thread.Abort(); // NOT WORKING!!!
+            }
+            catch (ThreadAbortException ex)
+            {
+                System.Console.WriteLine("Slave " + url + " cleaning up...");
+                // empty queue if it is in frozen state?
+            }
+            finally
+            {
+                System.Console.WriteLine("Slave " + url + " exiting...");
+            }
         }
 
+        // log to Puppet Master (or not!)
         public void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
         {
-            
+            state.ReplicaUpdate(replicaUrl, tupleFields);
         }
     }
 }
