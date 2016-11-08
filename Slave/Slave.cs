@@ -144,15 +144,8 @@ namespace Slave
         // crash process
         public void Crash()
         {
-            try
-            {
                 System.Console.WriteLine("Slave " + url + " got crash command...");
-                //Thread.Abort(); // NOT WORKING!!!
-            }
-            catch (ThreadAbortException ex)
-            {
-                System.Console.WriteLine("Slave " + url + " crashing...");
-            }
+                Environment.Exit(1);      
         }
 
         // change state to frozen
@@ -171,20 +164,14 @@ namespace Slave
         // exit gracefully
         public void Exit()
         {
-            try
+            if(jobQueue.Count != 0) // end all jobs first
             {
-                System.Console.WriteLine("Slave " + url + " got exit command...");
-                //Thread.Abort(); // NOT WORKING!!!
+                state = new UnfrozenState(this);
+                state.Dispatch(null);
             }
-            catch (ThreadAbortException ex)
-            {
-                System.Console.WriteLine("Slave " + url + " cleaning up...");
-                // empty queue if it is in frozen state?
-            }
-            finally
-            {
-                System.Console.WriteLine("Slave " + url + " exiting...");
-            }
+
+            System.Console.WriteLine("Slave " + url + " exiting...");
+            Environment.Exit(1);
         }
 
         // log to Puppet Master (or not!)
