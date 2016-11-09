@@ -21,6 +21,7 @@ namespace PuppetMaster
             _form = form;
             _updateForm = updateForm;
             _logFilePath = logFilePath;
+            System.IO.File.WriteAllText(logFilePath, string.Empty);
             _writingThread = new Thread(() =>
                 {
                     while (_isThreadToExit == false)
