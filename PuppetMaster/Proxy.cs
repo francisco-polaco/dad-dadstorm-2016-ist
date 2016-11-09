@@ -95,7 +95,7 @@ namespace PuppetMaster
             RemoteAsyncNoArgsDelegate RemoteDel = new RemoteAsyncNoArgsDelegate(remoteObj.Freeze);
             AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
             // Call remote method
-            //IAsyncResult RemAr = RemoteDel.BeginInvoke(RemoteCallback, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(RemoteCallback, null);
         }
 
         public void Interval(int ms)
@@ -107,7 +107,7 @@ namespace PuppetMaster
             RemoteAsyncArgsDelegate RemoteDel = new RemoteAsyncArgsDelegate(remoteObj.Interval);
             AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
             // Call remote method
-            //IAsyncResult RemAr = RemoteDel.BeginInvoke(ms, RemoteCallback, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(ms, RemoteCallback, null);
         }
 
         public void Start()
@@ -119,7 +119,7 @@ namespace PuppetMaster
             RemoteAsyncNoArgsDelegate RemoteDel = new RemoteAsyncNoArgsDelegate(remoteObj.Start);
             AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
             // Call remote method
-            //IAsyncResult RemAr = RemoteDel.BeginInvoke(RemoteCallback, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(RemoteCallback, null);
         }
 
         public void Status()
@@ -131,7 +131,7 @@ namespace PuppetMaster
             RemoteAsyncNoArgsDelegate RemoteDel = new RemoteAsyncNoArgsDelegate(remoteObj.Status);
             AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
             // Call remote method
-            //IAsyncResult RemAr = RemoteDel.BeginInvoke(RemoteCallback, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(RemoteCallback, null);
         }
 
         public void Unfreeze()
@@ -143,7 +143,7 @@ namespace PuppetMaster
             RemoteAsyncNoArgsDelegate RemoteDel = new RemoteAsyncNoArgsDelegate(remoteObj.Unfreeze);
             AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
             // Call remote method
-            //IAsyncResult RemAr = RemoteDel.BeginInvoke(RemoteCallback, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(RemoteCallback, null);
         }
 
         public void Crash()
@@ -155,7 +155,7 @@ namespace PuppetMaster
             RemoteAsyncNoArgsDelegate RemoteDel = new RemoteAsyncNoArgsDelegate(remoteObj.Crash);
             AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
             // Call remote method
-            //IAsyncResult RemAr = RemoteDel.BeginInvoke(RemoteCallback, null);
+            IAsyncResult RemAr = RemoteDel.BeginInvoke(RemoteCallback, null);
         }
 
         public void Exit()
@@ -163,7 +163,7 @@ namespace PuppetMaster
             IRemoteCmdInterface remoteObj = (IRemoteCmdInterface)Activator.GetObject(
                 typeof(IRemoteCmdInterface),
                 _url);
-            //remoteObj.Exit();
+            remoteObj.Exit();
         }
 
         public void OnRemoteCallback(IAsyncResult ar)

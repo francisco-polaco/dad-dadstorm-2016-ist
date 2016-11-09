@@ -19,7 +19,7 @@ namespace PuppetMaster
 
         private Log _logger;
         private bool _loggerOnline = false;
-       // private Queue<string> _loggerBuffer = new Queue<string>();
+        // private Queue<string> _loggerBuffer = new Queue<string>();
 
         private Dictionary<int, Operator> _operators;
 
@@ -50,7 +50,7 @@ namespace PuppetMaster
             }
         }
 
-        public void SetupFullSpeed(Form form, Delegate toUpdateUi, Delegate toPreparePBar, 
+        public void SetupFullSpeed(Form form, Delegate toUpdateUi, Delegate toPreparePBar,
             Delegate toIncrementProgBar, string configFilePath = @"config.config")
         {
             if (!_loggerOnline)
@@ -61,7 +61,7 @@ namespace PuppetMaster
             }
             ConfigFileProcessor.GetInstance(configFilePath)
                 .ExecuteFullSpeed(form, toUpdateUi, toPreparePBar, toIncrementProgBar);
-            
+
         }
 
         public void SetupStepByStep(Form form, Delegate toUpdateUi, Delegate toDisableStepByStep,
@@ -130,7 +130,7 @@ namespace PuppetMaster
 
         public void Status()
         {
-            foreach(KeyValuePair<int, Operator> entry in _operators)
+            foreach (KeyValuePair<int, Operator> entry in _operators)
             {
                 entry.Value.Status();
             }
@@ -159,7 +159,7 @@ namespace PuppetMaster
         internal void Exit()
         {
             if (_logger != null) _logger.Exit();
-            foreach(KeyValuePair<int, Operator> entry in _operators)
+            foreach (KeyValuePair<int, Operator> entry in _operators)
             {
                 entry.Value.Exit();
             }
@@ -196,16 +196,17 @@ namespace PuppetMaster
             {
                 PuppetMaster.GetInstance().Log("PCS URL: " + pcsUrl);
                 // Remove comments after pcs implementation
-                //try
-                //{
-                //    IPCSSlaveLaunch remoteObj = (IPCSSlaveLaunch)Activator.GetObject(
-                //        typeof(IPCSSlaveLaunch), pcsUrl);
-                //    remoteObj.Launch(cp);
-                //}catch(SocketException e)
-                //{
-                //    MessageBox.Show("Error connecting to PCS with URL: " + pcsUrl);
-                //    PuppetMaster.GetInstance().Log("Error connecting to PCS with URL: " + pcsUrl);
-                //}
+                try
+                {
+                    IPcsSlaveLaunch remoteObj = (IPcsSlaveLaunch)Activator.GetObject(
+                        typeof(IPcsSlaveLaunch), pcsUrl);
+                    remoteObj.Launch(cp);
+                }
+                catch (SocketException e)
+                {
+                    MessageBox.Show("Error connecting to PCS with URL: " + pcsUrl);
+                    PuppetMaster.GetInstance().Log("Error connecting to PCS with URL: " + pcsUrl);
+                }
             }
 
         }
