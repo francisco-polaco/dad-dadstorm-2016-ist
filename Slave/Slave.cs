@@ -104,7 +104,7 @@ namespace Slave
             // init server
             TcpChannel channel = new TcpChannel(port);
             ChannelServices.RegisterChannel(channel, true);
-            RemotingServices.Marshal(this, "slave", typeof(Slave));
+            RemotingServices.Marshal(this, "op", typeof(Slave));
             Console.WriteLine("Slave with url " + url + " is listening!");
 
             // init client to log puppetLogProxy
@@ -125,6 +125,7 @@ namespace Slave
         // start processing
         public void Start()
         {
+            Console.WriteLine("Slave with url " + url + " is starting!");
             init();
             Dispatch(null);
         }
@@ -132,6 +133,7 @@ namespace Slave
         // sleep ms milliseconds
         public void Interval(int ms)
         {
+            Console.WriteLine("Slave with url " + url + " going to sleep!");
             Thread.Sleep(ms);
         }
 
@@ -144,31 +146,44 @@ namespace Slave
         // crash process
         public void Crash()
         {
-                System.Console.WriteLine("Slave " + url + " got crash command...");
-                Environment.Exit(1);      
+            System.Console.WriteLine("Slave " + url + " got crash command...");
+            Environment.Exit(1);      
         }
 
         // change state to frozen
         public void Freeze()
         {
             state = new FrozenState(this);
+            Console.WriteLine("Slave with url " + url + " is now fozen!");
         }
 
         // change state to unfrozen
         public void Unfreeze()
         {
             state = new UnfrozenState(this);
-            state.Dispatch(null);
+
+            Console.WriteLine("Slave with url " + url + " is now unfozen!");
+            // dispatch all queued jobs
+            try
+            {
+                string tuple = null;
+                for(int i = 0; i < jobQueue.Count; i++)
+                {
+                    tuple = getJob();
+                    Console.WriteLine("Slave with url " + url + " dispatching job #" + i + " in the queue!");
+                    state.Dispatch(tuple);
+                }  
+            }
+            catch (InvalidOperationException ex)
+            {
+                System.Console.WriteLine("jobQueue empty!");
+            }
         }
 
         // exit gracefully
         public void Exit()
         {
-            if(jobQueue.Count != 0) // end all jobs first
-            {
-                state = new UnfrozenState(this);
-                state.Dispatch(null);
-            }
+            Unfreeze(); // even if the current state is unfrozen, it unfrozes again to dispatch queued jobs
 
             System.Console.WriteLine("Slave " + url + " exiting...");
             Environment.Exit(1);
@@ -178,6 +193,20 @@ namespace Slave
         public void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
         {
             state.ReplicaUpdate(replicaUrl, tupleFields);
+        }
+
+        /// auxiliary: add job to jobQueue
+        public void addJob(string tuple)
+        {
+            jobQueue.Enqueue(tuple);
+        }
+
+        /// auxiliary: get job from jobQueue
+        /// 
+        /// <exception cref="InvalidOperationException">Thrown if Queue is empty.</exception>
+        public string getJob()
+        {
+            return jobQueue.Dequeue();
         }
     }
 }
