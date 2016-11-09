@@ -34,14 +34,13 @@ namespace ProcessCreationService
 
         public void Launch(ConnectionPack input)
         {
-
             string cmd = input.Cmd;
             List<string> urls = input.ListUrls; 
             List<string> downstream_urls = input.ReplicaUrlsOutput;
 
             // split command by keywords
-            string pattern = @"INPUT_OPS|REP_FACT|ROUTING|ADDRESS|OPERATOR_SPEC";
-            string[] tokens = Regex.Split(cmd, pattern).Where(s => s != String.Empty).ToArray<string>();
+            string pattern = @"INPUT OPS|REP FACT|ROUTING|ADDRESS|OPERATOR SPEC";
+            string[] tokens = Regex.Split(cmd, pattern, RegexOptions.IgnoreCase).Where(s => s != String.Empty).ToArray<string>();
 
             // splitting by 5 keywords should generate 6 tokens
             if (tokens.Length != 6)
@@ -61,6 +60,7 @@ namespace ProcessCreationService
             // tokenize input
             string importPattern = @",|\s";
             string[] importTokens = Regex.Split(tokens[1], importPattern).Where(s => s != String.Empty).ToArray<string>();
+
 
             // list to collect possible file paths
             List<string> filePathsList = new List<string>();
