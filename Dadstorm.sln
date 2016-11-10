@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuppetMaster", "PuppetMaster\PuppetMaster.csproj", "{D122BCCA-AD80-4EAC-BBAA-8244CC8C6D3B}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreationService", "ProcessCreationService\ProcessCreationService.csproj", "{C5D9ABF1-023D-4B7D-AD71-62A953F77B82}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Slave", "Slave\Slave.csproj", "{F2F5838C-90C1-4B28-857D-019DBF66EAD3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mylib", "mylib\mylib.csproj", "{B7AF47D2-8EB4-4853-A08D-391A4C9B83F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{F2F5838C-90C1-4B28-857D-019DBF66EAD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2F5838C-90C1-4B28-857D-019DBF66EAD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2F5838C-90C1-4B28-857D-019DBF66EAD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7AF47D2-8EB4-4853-A08D-391A4C9B83F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7AF47D2-8EB4-4853-A08D-391A4C9B83F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7AF47D2-8EB4-4853-A08D-391A4C9B83F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7AF47D2-8EB4-4853-A08D-391A4C9B83F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

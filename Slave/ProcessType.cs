@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -84,17 +86,21 @@ namespace Slave
 
         public string Process(string input)
         {
-            string[] content = input.Split(',');
-            for (int i = 0; i < content.Length; i++)
-                content[i] = content[i].Trim();
-            
             // C# Reflection 
-            var importDLL = Assembly.LoadFile(dll);
-            Type type = importDLL.GetType(invokeClass);
+            var importDLL = Assembly.LoadFile(Environment.CurrentDirectory +  @"\..\..\..\Inputs\" + dll);
+            // The substring is used to cut the .dll, since we need the namespace
+            string ns = dll.Substring(0, dll.IndexOf("."));
+            Type type = importDLL.GetType(ns + "." + invokeClass);
             object instance = Activator.CreateInstance(type);
-            object output  = type.InvokeMember(method, BindingFlags.InvokeMethod, null, instance, content);
+               
+            object output = type.InvokeMember(
+                                            method, 
+                                            BindingFlags.Public | 
+                                            BindingFlags.Instance | 
+                                            BindingFlags.InvokeMethod, 
+                                            null, instance, new object[] {input});
 
-            return output == null ? string.Empty : (string)output;
+            return (string)output;
         }
     }
 }
