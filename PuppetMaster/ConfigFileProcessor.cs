@@ -1,6 +1,7 @@
 ﻿using CommonTypes;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -141,7 +142,22 @@ namespace PuppetMaster
                 }
 
 
-                IPAddress ip = Dns.GetHostEntry(Environment.MachineName).AddressList.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork);
+                IPAddress ipAddr = Dns.GetHostEntry(Environment.MachineName).AddressList.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork);
+                string ip = "";
+                try
+                {
+                    using (StreamReader file =
+                        new StreamReader("ip_tba_ppm.txt", true))
+                    {
+                        string line = file.ReadLine();
+                        if (line != null) ip = line;
+                    }
+                }
+                catch (FileNotFoundException e)
+                {
+                    ip = ipAddr.ToString();
+                }
+
                 string myLogUrl = "tcp://" + ip + ":" + PuppetMaster.Port + "/" + PuppetMaster.RemoteName;
                 PuppetMaster.GetInstance().Log("IP Sent for PCS: " + myLogUrl);
                 ConnectionPack thingsToSend = new ConnectionPack(cmd, _isLogFull, listUrls, myLogUrl);
