@@ -26,7 +26,7 @@ namespace Slave
             System.IO.StreamReader file;
             foreach (string path in filePaths)
             {
-                file = new System.IO.StreamReader(@path);
+                file = new System.IO.StreamReader(Environment.CurrentDirectory + @"\..\..\..\Inputs\" + path);
                 while((tuple = file.ReadLine()) != null)
                 {
                     if (tuple.StartsWith("%%"))
