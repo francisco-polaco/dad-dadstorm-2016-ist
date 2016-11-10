@@ -18,19 +18,26 @@ namespace Slave
 
         public string Process(string input)
         {
-            string[] content = input.Split(',');
-            // Since fields in tuple are separated by white spaces, trim them
-            string needle = content[fieldNumber].Trim();
-            return Regex.Matches(input, needle).Count == 1 ? input : string.Empty;
+            if (input.Contains(","))
+            {
+                string[] content = input.Split(',');
+                // Since fields in tuple are separated by white spaces, trim them
+                string needle = content[fieldNumber].Trim();
+                return Regex.Matches(input, needle).Count == 1 ? input : string.Empty;
+            }
+            return input;
         }
     }
 
     [Serializable]
     public class Count : Process
     {
+        private int seenTuples = 0;
+
         public string Process(string input)
         {
-            return !input.Equals(string.Empty) ? input.Split(',').Length.ToString() : "0";
+            seenTuples++;
+            return seenTuples.ToString();
         }
     }
 
@@ -59,12 +66,22 @@ namespace Slave
 
         public string Process(string input)
         {
-            string[] content = input.Split(',');
+            string toCompare;
+            if (!input.Contains(",") && fieldNumber == 0)
+            {
+                toCompare = input;
+            }
+            else
+            {
+                string[] content = input.Split(',');
+                toCompare = content[fieldNumber].Trim();
+            }
+            
             switch (condition)
             {
-                case ">": return String.Compare(content[fieldNumber].Trim(), value) > 0 ? input : string.Empty;
-                case "<": return String.Compare(content[fieldNumber].Trim(), value) < 0 ? input : string.Empty;
-                case "=": return String.Compare(content[fieldNumber].Trim(), value) == 0 ? input : string.Empty;
+                case ">": return String.Compare(toCompare, value) > 0 ? input : string.Empty;
+                case "<": return String.Compare(toCompare, value) < 0 ? input : string.Empty;
+                case "=": return String.Compare(toCompare, value) == 0 ? input : string.Empty;
                 default: return string.Empty;
             }
         }

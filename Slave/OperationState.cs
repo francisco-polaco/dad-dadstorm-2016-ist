@@ -54,7 +54,8 @@ namespace Slave
                     Console.WriteLine("Processing tuple: " + s);
                     string output = SlaveObj.ProcessObj.Process(s);
 
-                    if(output == String.Empty)
+                    
+                    if (output.Equals(string.Empty))
                         continue;
 
                     SlaveObj.RouteObj.Route(output);

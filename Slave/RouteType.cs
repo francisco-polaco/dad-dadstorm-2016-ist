@@ -95,8 +95,13 @@ namespace Slave
 
         public override void Route(string input)
         {
-            string[] content = input.Split(',');
-            int hashNumber = (content[fieldID].Trim().GetHashCode())%(content.Length - 1);
+            int hashNumber = 0;
+            if (input.Contains(","))
+            {
+                string[] content = input.Split(',');
+                hashNumber = (content[fieldID].Trim().GetHashCode())%(content.Length - 1);
+            }
+          
             try
             {
                 if (urls.Count != 0)
