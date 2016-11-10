@@ -15,9 +15,9 @@ namespace Slave
         public override Import GetImport(string[] specs, string[] filePaths)
         {
             string operatorType = specs[0];
-            if (operatorType.Equals("FileImport"))
+            if (operatorType.ToLower().Equals("fileimport"))
                 return new FileImport(filePaths);
-            else if (operatorType.Equals("OpImport"))
+            else if (operatorType.ToLower().Equals("opimport"))
                 return new OpImport();
             return null;
         }
@@ -52,15 +52,15 @@ namespace Slave
         public override Process GetProcessing(string[] specs)
         {
             string operatorType = specs[0];
-            if (operatorType.Equals("Uniq"))
+            if (operatorType.ToLower().Equals("uniq"))
                 return new Uniq(specs[1]);
-            else if (operatorType.Equals("Count"))
+            else if (operatorType.ToLower().Equals("count"))
                 return new Count();
-            else if (operatorType.Equals("Dup"))
+            else if (operatorType.ToLower().Equals("dup"))
                 return new Dup();
-            else if (operatorType.Equals("Filter"))
+            else if (operatorType.ToLower().Equals("filter"))
                 return new Filter(specs[1], specs[2], specs[3]);
-            else if (operatorType.Equals("Custom"))
+            else if (operatorType.ToLower().Equals("custom"))
                 return new Custom(specs[1], specs[2], specs[3]);
             else
                 return null;
@@ -97,11 +97,11 @@ namespace Slave
         public override Route GetRouting(string[] specs, List<string> urls)
         {
             string operatorType = specs[0];
-            if (operatorType.Equals("Primary"))
+            if (operatorType.ToLower().Equals("primary"))
                 return new Primary(urls);
-            else if (operatorType.Equals("Random"))
+            else if (operatorType.ToLower().Equals("random"))
                 return new Random(urls);
-            else if (operatorType.Equals("Hashing"))
+            else if (operatorType.ToLower().Equals("hashing"))
                 return new Hashing(urls, specs[1]);
             else
                 return null;

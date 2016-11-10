@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Slave
 {
+    [Serializable]
     public class FileImport : Import
     {
         private string[] filePaths;
@@ -13,11 +15,11 @@ namespace Slave
 
         public List<string> Import()
         {
-            List<string> output = inputImport();
+            List<string> output = InputImport();
             return output.Count == 0 ? null : output;
         }
 
-        private List<string> inputImport()
+        private List<string> InputImport()
         {
             string tuple;
             List<string> tuples = new List<string>();
@@ -32,14 +34,12 @@ namespace Slave
                     tuples.Add(tuple);
                 }
                 file.Close();
-                tuple = null;
             }
             return tuples;
         }
-        
-
     }
 
+    [Serializable]
     public class OpImport : Import
     {
         /// <summary>

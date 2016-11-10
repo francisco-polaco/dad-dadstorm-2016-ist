@@ -5,8 +5,10 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.IO;
 using Slave;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ProcessCreationService
 {
@@ -36,7 +38,7 @@ namespace ProcessCreationService
         {
             string cmd = input.Cmd;
             List<string> urls = input.ListUrls; 
-            List<string> downstream_urls = input.ReplicaUrlsOutput;
+            List<string> downstreamUrls = input.ReplicaUrlsOutput;
 
             // split command by keywords
             string pattern = @"INPUT OPS|REP FACT|ROUTING|ADDRESS|OPERATOR SPEC";
@@ -91,7 +93,7 @@ namespace ProcessCreationService
             string routingPattern = @"[)(\s]";
             string[] routingTokens = Regex.Split(tokens[3], routingPattern).Where(s => s != String.Empty).ToArray<string>();
 
-            routeObj = routingFactory.GetRouting(routingTokens, downstream_urls);
+            routeObj = routingFactory.GetRouting(routingTokens, downstreamUrls);
 
             /*** create processing object ***/
             AbstractFactory processingFactory = new ProcessingFactory();
@@ -111,8 +113,23 @@ namespace ProcessCreationService
             string[] plain_urls = urls.ToArray().Where(s => s != String.Empty).ToArray<string>();
 
             foreach (string url in plain_urls)
-                new Slave.Slave(importObj, routeObj, processObj, url, input.PuppetMasterUrl, input.IsLogFull);
+                System.Diagnostics.Process.Start(@"Slave.exe",SerializeObject(importObj) + " " + SerializeObject(routeObj) + " " +
+                    SerializeObject(processObj) + " " + SerializeObject(url) + " " + SerializeObject(input.PuppetMasterUrl) + " " +
+                    SerializeObject(input.IsLogFull));
+        }
 
+        private string SerializeObject(object o)
+        {
+            if (!o.GetType().IsSerializable)
+            {
+                return null;
+            }
+
+            using (MemoryStream stream = new MemoryStream())
+            {
+                new BinaryFormatter().Serialize(stream, o);
+                return Convert.ToBase64String(stream.ToArray());
+            }
         }
     }
 }

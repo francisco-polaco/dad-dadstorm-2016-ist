@@ -51,7 +51,12 @@ namespace Slave
                 // input via file
                 foreach (string s in tuples)
                 {
+                    Console.WriteLine("Processing tuple: " + s);
                     string output = SlaveObj.ProcessObj.Process(s);
+
+                    if(output == String.Empty)
+                        continue;
+
                     SlaveObj.RouteObj.Route(output);
 
                     // log with PuppetMaster

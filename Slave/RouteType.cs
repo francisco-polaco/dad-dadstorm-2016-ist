@@ -6,6 +6,7 @@ using System.Net.Sockets;
 
 namespace Slave
 {
+    [Serializable]
     public abstract class RouteParent : Route
     {
         public abstract void Route(string input);
@@ -28,6 +29,7 @@ namespace Slave
 
     }
 
+    [Serializable]
     public class Primary : RouteParent, Route
     {
         private List<string> urls;
@@ -41,7 +43,8 @@ namespace Slave
         {
             try
             {
-                GetDownstreamReplicas(urls)[0].Dispatch(input);
+                if (urls.Count != 0)
+                    GetDownstreamReplicas(urls)[0].Dispatch(input);
             }
             catch (SocketException)
             {
@@ -51,6 +54,7 @@ namespace Slave
         }
     }
 
+    [Serializable]
     public class Random : RouteParent, Route
     {
         private List<string> urls;
@@ -67,7 +71,8 @@ namespace Slave
             int randomInt = rnd.Next(urls.Count);
             try
             {
-                GetDownstreamReplicas(urls)[randomInt].Dispatch(input);
+                if(urls.Count != 0)
+                    GetDownstreamReplicas(urls)[randomInt].Dispatch(input);
             }
             catch (SocketException)
             {
@@ -76,6 +81,7 @@ namespace Slave
         }
     }
 
+    [Serializable]
     public class Hashing : RouteParent, Route
     {
         private List<string> urls;
@@ -93,7 +99,8 @@ namespace Slave
             int hashNumber = (content[fieldID].Trim().GetHashCode())%(content.Length - 1);
             try
             {
-                GetDownstreamReplicas(urls)[hashNumber].Dispatch(input);
+                if (urls.Count != 0)
+                    GetDownstreamReplicas(urls)[hashNumber].Dispatch(input);
             }
             catch (SocketException)
             {

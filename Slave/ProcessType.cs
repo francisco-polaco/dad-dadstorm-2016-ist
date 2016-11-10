@@ -4,13 +4,14 @@ using System.Text.RegularExpressions;
 
 namespace Slave
 {
+    [Serializable]
     public class Uniq : Process
     {
         private int fieldNumber;
 
         public Uniq(string fieldNumber)
         {
-            this.fieldNumber = int.Parse(fieldNumber);
+            this.fieldNumber = int.Parse(fieldNumber) - 1;
         }
 
         public string Process(string input)
@@ -22,6 +23,7 @@ namespace Slave
         }
     }
 
+    [Serializable]
     public class Count : Process
     {
         public string Process(string input)
@@ -30,6 +32,7 @@ namespace Slave
         }
     }
 
+    [Serializable]
     public class Dup : Process
     {
         public string Process(string input)
@@ -38,6 +41,7 @@ namespace Slave
         }
     }
 
+    [Serializable]
     public class Filter : Process
     {
         private int fieldNumber;
@@ -46,7 +50,7 @@ namespace Slave
 
         public Filter(string fieldNumber, string condition, string value)
         {
-            this.fieldNumber = int.Parse(fieldNumber);
+            this.fieldNumber = int.Parse(fieldNumber) - 1;
             this.condition = condition;
             this.value = value;
         }
@@ -64,6 +68,7 @@ namespace Slave
         }
     }
 
+    [Serializable]
     public class Custom : Process
     {
         private string dll;

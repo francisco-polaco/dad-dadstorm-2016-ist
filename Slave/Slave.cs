@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using CommonTypes;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 
 
@@ -13,8 +15,25 @@ namespace Slave
     {
         static void Main(string[] args)
         {
-            // Reserved for testing - disabled in the multiple startup project 
-            // PCS should be the responsible for the slaves creation
+            Import import = (Import)DeserializeObject(args[0]);
+            Route route = (Route)DeserializeObject(args[1]);
+            Process process = (Process)DeserializeObject(args[2]);
+            string url = (string)DeserializeObject(args[3]);
+            string puppetMasterUrl = (string)DeserializeObject(args[4]);
+            bool logLevel = (bool)DeserializeObject(args[5]);
+
+            var slave = new Slave(import,route,process,url,puppetMasterUrl,logLevel);
+            Console.ReadLine();
+        }
+
+        private static object DeserializeObject(string str)
+        {
+            byte[] bytes = Convert.FromBase64String(str);
+
+            using (MemoryStream stream = new MemoryStream(bytes))
+            {
+                return new BinaryFormatter().Deserialize(stream);
+            }
         }
     }
 
@@ -41,6 +60,7 @@ namespace Slave
             this.isLogFull = logLevel;
             state = new UnfrozenState(this);
             jobQueue = new Queue<string>();
+            init();
         }
 
         // getters, setters
@@ -103,7 +123,7 @@ namespace Slave
 
             // init server
             TcpChannel channel = new TcpChannel(port);
-            ChannelServices.RegisterChannel(channel, true);
+            ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(this, "op", typeof(Slave));
             Console.WriteLine("Slave with url " + url + " is listening!");
 
@@ -117,6 +137,7 @@ namespace Slave
         // do stuff
         public void Dispatch(string input)
         {
+            Console.WriteLine("Going to dispatch things...");
             state.Dispatch(input);
         }
 
@@ -126,7 +147,6 @@ namespace Slave
         public void Start()
         {
             Console.WriteLine("Slave with url " + url + " is starting!");
-            init();
             Dispatch(null);
         }
 
