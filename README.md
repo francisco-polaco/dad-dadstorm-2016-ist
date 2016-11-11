@@ -17,4 +17,8 @@ Either copy the files where the Slave binary is, or change the config file by gi
 ### Custom dll
 You need to copy the mylib.dll to the Slave execution folder.</br>
 ### PuppetMaster IP Override
-Sometimes when we have multiple Network Cards, for instance with VirtualBox installed, the URL that the PuppetCard advertises is wrong.</br>By changing the file "Inputs/ip_tba_ppm.txt", you will override the default IP and be able to select a proper IP.</br>Be aware that:</br> 1) Anything that you put in this file will be considered an IP, ie no IP format checking;</br>2) It is only considered the file's first line;</br>3) In Windows a end of the line is different from other systems.
+Sometimes when we have multiple Network Cards, for instance with VirtualBox installed, the URL that the PuppetCard advertises is wrong.</br>By changing the file "Inputs/ip_tba_ppm.txt", you will override the default IP and be able to select a proper IP.</br>Be aware that:</br> 1) Anything that you put in this file will be considered an IP, ie no IP format checking;</br>2) It is only considered the file's first line;</br>3) In Windows a end of the line is different from other systems.</br></br>
+
+
+## Running
+Compile and setup "Multiple Startup Projects" in Visual Studio. You should only ask to run the PuppetMaster and the Process Creation Service.
