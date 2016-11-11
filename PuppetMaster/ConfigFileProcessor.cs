@@ -97,8 +97,11 @@ namespace PuppetMaster
                 PuppetMaster.GetInstance().Log("===== Configuration file loading started =====");
             }
             if (_fileLines.Count != 0 && _lineIndex < _fileLines.Count)
+            {
+                if(_fileLines.ElementAt(_lineIndex).StartsWith("Wait"))
+                    PuppetMaster.GetInstance().Log("Wait command is ignored in Step by step mode.");
                 ExecuteLine(_fileLines.ElementAt(_lineIndex++));
-            
+            }
             form.Invoke(toIncrementProgBar, _lineIndex);
 
             if (_lineIndex >= _fileLines.Count)
@@ -142,21 +145,7 @@ namespace PuppetMaster
                 }
 
 
-                IPAddress ipAddr = Dns.GetHostEntry(Environment.MachineName).AddressList.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork);
-                string ip = "";
-                try
-                {
-                    using (StreamReader file =
-                        new StreamReader(Environment.CurrentDirectory + @"\..\..\..\Inputs\" + "ip_tba_ppm.txt", true))
-                    {
-                        string line = file.ReadLine();
-                        if (line != null) ip = line;
-                    }
-                }
-                catch (FileNotFoundException e)
-                {
-                    ip = ipAddr.ToString();
-                }
+                string ip = GetOwnIp();
 
                 string myLogUrl = "tcp://" + ip + ":" + PuppetMaster.Port + "/" + PuppetMaster.RemoteName;
                 PuppetMaster.GetInstance().Log("IP Sent for PCS: " + myLogUrl);
@@ -187,6 +176,28 @@ namespace PuppetMaster
                 ParseCommand(cmd);
             }
             
+        }
+
+        private string GetOwnIp()
+        {
+            IPAddress ipAddr =
+                Dns.GetHostEntry(Environment.MachineName)
+                    .AddressList.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork);
+            string ip = "";
+            try
+            {
+                using (StreamReader file =
+                    new StreamReader(Environment.CurrentDirectory + @"\..\..\..\Inputs\" + "ip_tba_ppm.txt", true))
+                {
+                    string line = file.ReadLine();
+                    if (line != null) ip = line;
+                }
+            }
+            catch (FileNotFoundException e)
+            {
+                if (ipAddr != null) ip = ipAddr.ToString();
+            }
+            return ip;
         }
 
         public void ParseCommand(string cmd)

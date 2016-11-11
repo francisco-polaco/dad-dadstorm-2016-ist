@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Sockets;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
@@ -120,35 +121,68 @@ namespace PuppetMaster
 
         public void Start(int opid)
         {
-            _operators[opid].Start();
+            try
+            {
+                _operators[opid].Start();
+            }
+            catch (RemotingException e)
+            {
+                Log(e.Message);
+            }
         }
 
         public void Interval(int opid, int ms)
         {
-            _operators[opid].Interval(ms);
+            try
+            {
+                _operators[opid].Interval(ms);
+            }
+            catch (RemotingException e)
+            {
+                Log(e.Message);
+            }
         }
+
 
         public void Status()
         {
             foreach (KeyValuePair<int, Operator> entry in _operators)
             {
-                entry.Value.Status();
+                try { 
+                    entry.Value.Status();
+                }
+                catch (RemotingException e)
+                {
+                    Log(e.Message);
+                }
             }
         }
 
         public void Crash(int opid, int replicaid)
         {
-            _operators[opid].Crash(replicaid);
+            try {   _operators[opid].Crash(replicaid);}
+            catch (RemotingException e)
+            {
+                Log(e.Message);
+            }
         }
 
         public void Freeze(int opid, int replicaid)
         {
-            _operators[opid].Freeze(replicaid);
+            try { _operators[opid].Freeze(replicaid);}
+            catch (RemotingException e)
+            {
+                Log(e.Message);
+            }
         }
 
         public void Unfreeze(int opid, int replicaid)
         {
-            _operators[opid].Unfreeze(replicaid);
+            try { _operators[opid].Unfreeze(replicaid);}
+            catch (RemotingException e)
+            {
+                Log(e.Message);
+            }
         }
 
         public void Wait(int ms)
@@ -161,7 +195,11 @@ namespace PuppetMaster
             if (_logger != null) _logger.Exit();
             foreach (KeyValuePair<int, Operator> entry in _operators)
             {
-                entry.Value.Exit();
+                try { entry.Value.Exit();}
+                catch (RemotingException e)
+                {
+                    Log(e.Message);
+                }
             }
         }
 
