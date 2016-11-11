@@ -17,7 +17,7 @@ namespace ProcessCreationService
         static void Main(string[] args)
         {
             //Console.Write("Insert the Process Creation Service name: ");
-            ProcessCreationService pcs = new ProcessCreationService(/*Console.ReadLine()*/);
+            ProcessCreationService pcs = new ProcessCreationService();
             Console.WriteLine("<Enter to exit> ");
             Console.ReadLine();    
         }
@@ -26,12 +26,12 @@ namespace ProcessCreationService
     public class ProcessCreationService : MarshalByRefObject, IPcsSlaveLaunch
     {
 
-        public ProcessCreationService(/*string name*/)
+        public ProcessCreationService()
         {
             TcpChannel channel = new TcpChannel(10000);
             ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(this, "pcs", typeof(ProcessCreationService));
-            Console.WriteLine("Process Creation Service " /*+ name +*/ +  " created!");
+            Console.WriteLine("Process Creation Service created!");
         }
 
         public void Launch(ConnectionPack input)

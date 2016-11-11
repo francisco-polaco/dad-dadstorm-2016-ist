@@ -32,7 +32,7 @@ namespace Slave
         {
             FileInfo fileInfo = new FileInfo(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt");
 
-            if (fileInfo != null && !fileInfo.Exists)
+            if (!fileInfo.Exists && fileInfo.Directory != null)
                 Directory.CreateDirectory(fileInfo.Directory.FullName);
             try
             {
