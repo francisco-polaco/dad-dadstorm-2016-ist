@@ -147,7 +147,7 @@ namespace PuppetMaster
                 try
                 {
                     using (StreamReader file =
-                        new StreamReader("ip_tba_ppm.txt", true))
+                        new StreamReader(Environment.CurrentDirectory + @"\..\..\..\Inputs\" + "ip_tba_ppm.txt", true))
                     {
                         string line = file.ReadLine();
                         if (line != null) ip = line;
