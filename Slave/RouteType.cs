@@ -34,10 +34,13 @@ namespace Slave
 
             if (!fileInfo.Exists && fileInfo.Directory != null)
                 Directory.CreateDirectory(fileInfo.Directory.FullName);
+
+            File.WriteAllText(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt", string.Empty);
+
             try
             {
-                using (System.IO.StreamWriter file =
-                    new System.IO.StreamWriter(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt", true))
+                using (StreamWriter file =
+                    new StreamWriter(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt", true))
                 {
                     file.WriteLine(output);
                 }
@@ -65,7 +68,12 @@ namespace Slave
             try
             {
                 if (urls.Count != 0)
-                    GetDownstreamReplicas(urls)[0].Dispatch(input);
+                {
+                    RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[0].Dispatch);
+                    //AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
+                    // Call remote method
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(input, null, null);
+                }
                 else
                 {
                     WriteToFile(input);
@@ -96,8 +104,17 @@ namespace Slave
             int randomInt = rnd.Next(urls.Count);
             try
             {
-                if(urls.Count != 0)
-                    GetDownstreamReplicas(urls)[randomInt].Dispatch(input);
+                if (urls.Count != 0)
+                {
+                    RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[randomInt].Dispatch);
+                    //AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
+                    // Call remote method
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(input, null, null);
+                }
+                else
+                {
+                    WriteToFile(input);
+                }
             }
             catch (SocketException)
             {
@@ -126,12 +143,21 @@ namespace Slave
                 string[] content = input.Split(',');
                 if(urls.Count != 0)
                     hashNumber = (content[fieldID].Trim().GetHashCode())%(urls.Count);
+                else
+                {
+                    WriteToFile(input);
+                }
             }
 
             try
             {
                 if (urls.Count != 0)
-                    GetDownstreamReplicas(urls)[hashNumber].Dispatch(input);
+                {
+                    RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[hashNumber].Dispatch);
+                    //AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
+                    // Call remote method
+                    IAsyncResult RemAr = RemoteDel.BeginInvoke(input, null, null);
+                }
             }
             catch (SocketException)
             {
@@ -139,4 +165,6 @@ namespace Slave
             }
         }
     }
+
+    public delegate void RemoteAsyncDelegate(string tuple);
 }
