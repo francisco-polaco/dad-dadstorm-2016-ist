@@ -99,9 +99,10 @@ namespace Slave
             if (input.Contains(","))
             {
                 string[] content = input.Split(',');
-                hashNumber = (content[fieldID].Trim().GetHashCode())%(content.Length - 1);
+                if(urls.Count != 0)
+                    hashNumber = (content[fieldID].Trim().GetHashCode())%(urls.Count);
             }
-          
+
             try
             {
                 if (urls.Count != 0)

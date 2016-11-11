@@ -58,12 +58,17 @@ namespace Slave
             this.url = url;
             this.puppetMasterUrl = puppetMasterUrl;
             this.isLogFull = logLevel;
-            state = new UnfrozenState(this);
+            state = new FrozenState(this);
             jobQueue = new Queue<string>();
             init();
         }
 
         // getters, setters
+
+        public Queue<string> JobQueue
+        {
+            get { return jobQueue;}
+        }
 
         public string Url
         {
@@ -137,7 +142,7 @@ namespace Slave
         // do stuff
         public void Dispatch(string input)
         {
-            Console.WriteLine("Going to dispatch things...");
+            Console.WriteLine("Dispatch method called...");
             state.Dispatch(input);
         }
 
@@ -147,6 +152,7 @@ namespace Slave
         public void Start()
         {
             Console.WriteLine("Slave with url " + url + " is starting!");
+            state = new UnfrozenState(this);
             Dispatch(null);
         }
 

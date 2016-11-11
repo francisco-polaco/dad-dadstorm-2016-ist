@@ -34,15 +34,24 @@ namespace Slave
 
         public override void Dispatch(string input)
         { 
-            // Se o input vier a null:
-            // -> Tentas SlaveObj.ImportObj.Import():
-            //    a) null = não há nada para processar retornas
-            //    b) não null = iteras a lista retornada processas (cuidado que o process retorna string.empty quando os requisitos n sao preenchidos) e das route 
-            // Caso o input n venha a null:
-            // -> fazes process do input e das route
-
             if (input == null) // start command was issued
             {
+                string tuple;
+                string outp;
+                while (SlaveObj.JobQueue.Count != 0)
+                {
+                    tuple = SlaveObj.getJob();
+                    outp = SlaveObj.ProcessObj.Process(tuple);
+
+                    if (outp.Equals(string.Empty))
+                        continue;
+
+                    SlaveObj.RouteObj.Route(outp);
+
+                    // log with PuppetMaster
+                    ReplicaUpdate(SlaveObj.Url, SplitTuple(outp));
+                }
+
                 List<string> tuples = SlaveObj.ImportObj.Import(); // try importing
 
                 if (tuples == null) // input comes from upstream operator (via routing)
@@ -66,6 +75,8 @@ namespace Slave
             }
             else // upstream operator has sent a tuple
             {
+                Console.WriteLine("Processing tuple: " + input);
+
                 string output = SlaveObj.ProcessObj.Process(input);
                 SlaveObj.RouteObj.Route(output);
 
