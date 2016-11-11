@@ -125,7 +125,7 @@ namespace PuppetMaster
             {
                 _operators[opid].Start();
             }
-            catch (RemotingException e)
+            catch (SocketException e)
             {
                 Log(e.Message);
             }
@@ -137,7 +137,7 @@ namespace PuppetMaster
             {
                 _operators[opid].Interval(ms);
             }
-            catch (RemotingException e)
+            catch (SocketException e)
             {
                 Log(e.Message);
             }
@@ -151,7 +151,7 @@ namespace PuppetMaster
                 try { 
                     entry.Value.Status();
                 }
-                catch (RemotingException e)
+                catch (SocketException e)
                 {
                     Log(e.Message);
                 }
@@ -161,7 +161,7 @@ namespace PuppetMaster
         public void Crash(int opid, int replicaid)
         {
             try {   _operators[opid].Crash(replicaid);}
-            catch (RemotingException e)
+            catch (SocketException e)
             {
                 Log(e.Message);
             }
@@ -170,7 +170,7 @@ namespace PuppetMaster
         public void Freeze(int opid, int replicaid)
         {
             try { _operators[opid].Freeze(replicaid);}
-            catch (RemotingException e)
+            catch (SocketException e)
             {
                 Log(e.Message);
             }
@@ -179,7 +179,7 @@ namespace PuppetMaster
         public void Unfreeze(int opid, int replicaid)
         {
             try { _operators[opid].Unfreeze(replicaid);}
-            catch (RemotingException e)
+            catch (SocketException e)
             {
                 Log(e.Message);
             }
@@ -196,7 +196,7 @@ namespace PuppetMaster
             foreach (KeyValuePair<int, Operator> entry in _operators)
             {
                 try { entry.Value.Exit();}
-                catch (RemotingException e)
+                catch (SocketException e)
                 {
                     Log(e.Message);
                 }

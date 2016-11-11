@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -39,10 +40,16 @@ namespace PuppetMaster
         }
         private void AppendToLog(string toLog)
         {
-            using (System.IO.StreamWriter file =
-            new System.IO.StreamWriter(_logFilePath, true))
+            try {
+                using (System.IO.StreamWriter file =
+                    new System.IO.StreamWriter(_logFilePath, true))
+                    {
+                        file.WriteLine(toLog);
+                    }
+            }
+            catch (IOException e)
             {
-                file.WriteLine(toLog);
+                MessageBox.Show("Impossible to write Log to file.");
             }
             _form.Invoke(_updateForm, new object[] { toLog });
         }

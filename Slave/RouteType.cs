@@ -2,6 +2,7 @@
 using System.Collections;
 using CommonTypes;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Sockets;
 
 namespace Slave
@@ -27,6 +28,26 @@ namespace Slave
             return output;
         }
 
+        public void WriteToFile(string output)
+        {
+            FileInfo fileInfo = new FileInfo(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt");
+
+            if (fileInfo != null && !fileInfo.Exists)
+                Directory.CreateDirectory(fileInfo.Directory.FullName);
+            try
+            {
+                using (System.IO.StreamWriter file =
+                    new System.IO.StreamWriter(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt", true))
+                {
+                    file.WriteLine(output);
+                }
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
     }
 
     [Serializable]
@@ -45,6 +66,10 @@ namespace Slave
             {
                 if (urls.Count != 0)
                     GetDownstreamReplicas(urls)[0].Dispatch(input);
+                else
+                {
+                    WriteToFile(input);
+                }
             }
             catch (SocketException)
             {
