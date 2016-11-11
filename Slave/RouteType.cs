@@ -30,19 +30,23 @@ namespace Slave
 
         public void WriteToFile(string output)
         {
-            FileInfo fileInfo = new FileInfo(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt");
+            lock (this)
+            {
+                FileInfo fileInfo = new FileInfo(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt");
 
-            if (!fileInfo.Exists && fileInfo.Directory != null)
-                Directory.CreateDirectory(fileInfo.Directory.FullName);
-
-            File.WriteAllText(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt", string.Empty);
+                if (!fileInfo.Exists && fileInfo.Directory != null)
+                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+            }
 
             try
             {
-                using (StreamWriter file =
-                    new StreamWriter(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt", true))
+                lock (this)
                 {
-                    file.WriteLine(output);
+                    using (StreamWriter file =
+                        new StreamWriter(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt", true))
+                    {
+                        file.WriteLine(output);
+                    }
                 }
             }
             catch (IOException e)

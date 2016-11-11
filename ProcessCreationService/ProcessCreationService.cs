@@ -31,6 +31,8 @@ namespace ProcessCreationService
             TcpChannel channel = new TcpChannel(10000);
             ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(this, "pcs", typeof(ProcessCreationService));
+            //Clearing possible output files
+            File.WriteAllText(Environment.CurrentDirectory + @"\..\..\..\Output\" + "output.txt", string.Empty); 
             Console.WriteLine("Process Creation Service created!");
         }
 

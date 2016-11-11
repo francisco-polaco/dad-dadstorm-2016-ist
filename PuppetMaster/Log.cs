@@ -41,11 +41,14 @@ namespace PuppetMaster
         private void AppendToLog(string toLog)
         {
             try {
-                using (System.IO.StreamWriter file =
+                lock (this)
+                {
+                    using (System.IO.StreamWriter file =
                     new System.IO.StreamWriter(_logFilePath, true))
                     {
                         file.WriteLine(toLog);
                     }
+                }
             }
             catch (IOException e)
             {
