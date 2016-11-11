@@ -159,6 +159,10 @@ namespace PuppetMaster
                     _whatShouldISentToOperators[op2Id].ReplicaUrlsOutput = listUrls;
                     _whatShouldISentToOperators[op2Id].RoutingType = res[8];
                 }
+                if (res[0].Equals(("OP1")))
+                {
+                    _whatShouldISentToOperators[opId].RoutingTypeToReadFromFile = res[8];
+                }
 
                 PuppetMaster.GetInstance().CreateOperator(opId, listUrls);
 

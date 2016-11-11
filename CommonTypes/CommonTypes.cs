@@ -38,6 +38,7 @@ namespace CommonTypes
         private List<string> _replicaUrlsOutput;
         private string _puppetMasterUrl;
         private string _routingType;
+        private string _routingTypeToReadFromFile;
 
         public ConnectionPack(string cmd, bool isLogFull, List<string> listUrls, string puppetMasterUrl)
         {
@@ -58,6 +59,19 @@ namespace CommonTypes
             set
             {
                 _cmd = value;
+            }
+        }
+
+        public string RoutingTypeToReadFromFile
+        {
+            get
+            {
+                return _routingTypeToReadFromFile;
+            }
+
+            set
+            {
+                _routingTypeToReadFromFile = value;
             }
         }
 
