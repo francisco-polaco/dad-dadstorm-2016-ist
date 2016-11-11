@@ -38,6 +38,7 @@ namespace ProcessCreationService
 
         public void Launch(ConnectionPack input)
         {
+            bool firstOP = false;
             string cmd = input.Cmd;
             List<string> urls = input.ListUrls; 
             List<string> downstreamUrls = input.ReplicaUrlsOutput;
@@ -65,11 +66,10 @@ namespace ProcessCreationService
             string importPattern = @",|\s";
             string[] importTokens = Regex.Split(tokens[1], importPattern).Where(s => s != String.Empty).ToArray<string>();
 
-
             // list to collect possible file paths
             List<string> filePathsList = new List<string>();
 
-            for (int i = 0; i < importTokens.Length; i++)
+            for (int i = 0; i < importTokens.Length; i++) { 
                 if (importTokens[i].StartsWith("OP")) // input comes from operator
                 {
                     importObj = importFactory.GetImport(new string[] { "OpImport" }, null);
@@ -77,15 +77,14 @@ namespace ProcessCreationService
                 }
                 else
                 {
-                    if (importTokens[i].Contains(".")) // input comes from file
+                    if (importTokens[i].Contains(".")) { // input comes from file
                         filePathsList.Add(importTokens[i]);
+                        firstOP = true;
+                    }
                     else
                         System.Console.WriteLine("Neither operator nor input file!!!");
                 }
-
-            // check if there were input files
-            if(filePathsList.Count != 0)
-                importObj = importFactory.GetImport(new string[] { "FileImport" }, filePathsList.ToArray());
+            }
 
             /*** create routing object ***/
             AbstractFactory routingFactory = new RoutingFactory();
@@ -114,10 +113,21 @@ namespace ProcessCreationService
             // remove empty strings from urls list
             string[] plain_urls = urls.ToArray().Where(s => s != String.Empty).ToArray<string>();
 
-            foreach (string url in plain_urls)
-                System.Diagnostics.Process.Start(@"Slave.exe",SerializeObject(importObj) + " " + SerializeObject(routeObj) + " " +
+            IDictionary<string, List<string>> tuplesInput = null;
+            if (firstOP)
+            {
+                tuplesInput = ProcessInputFiles(input.RoutingTypeToReadFromFile, urls, filePathsList.ToArray());
+            }
+
+            foreach (string url in plain_urls) {
+                if (firstOP)
+                {
+                    importObj = importFactory.GetImport(new string[] { "FileImport" }, tuplesInput[url].ToArray());
+                }
+                System.Diagnostics.Process.Start(@"Slave.exe", SerializeObject(importObj) + " " + SerializeObject(routeObj) + " " +
                     SerializeObject(processObj) + " " + SerializeObject(url) + " " + SerializeObject(input.PuppetMasterUrl) + " " +
                     SerializeObject(input.IsLogFull));
+            }
         }
 
         private string SerializeObject(object o)
@@ -132,6 +142,71 @@ namespace ProcessCreationService
                 new BinaryFormatter().Serialize(stream, o);
                 return Convert.ToBase64String(stream.ToArray());
             }
+        }
+
+        /// <summary>
+        /// Function used to simulate the pseudo-first operator of importing
+        /// </summary>
+        /// <param name="routeType"></param>
+        /// <param name="urls"></param>
+        /// <param name="paths"></param>
+        /// <returns></returns>
+        private IDictionary<string, List<string>> ProcessInputFiles(string routeType, List<string> urls, string[] paths)
+        {
+            List<string> input = InputImport(paths);
+            IDictionary<string, List<string>> output = new Dictionary<string, List<string>>();
+
+            // tokenize routing policy
+            string routingPattern = @"[)(\s]";
+            string[] routingTokens = Regex.Split(routeType, routingPattern).Where(s => s != String.Empty).ToArray<string>();
+
+            foreach (var url in urls)
+            {
+                KeyValuePair<string, List<string>> pair = new KeyValuePair<string, List<string>>(url, new List<string>());
+                output.Add(pair);
+            }
+
+            int index;
+            System.Random rnd = new System.Random();
+            foreach (string tuple in input)
+            {
+                if (routingTokens[0].Equals("random"))
+                {
+                    // rnd.Next(replica.Count) - number between [0;urls.count[
+                    index = rnd.Next(urls.Count);
+                }
+                else if (routingTokens[0].Equals("hashing"))
+                {
+                    index = tuple.GetHashCode() % urls.Count;
+                    if (index < 0)
+                        index += urls.Count;
+                }
+                else
+                {
+                    index = 0;
+                }
+                output[urls[index]].Add(tuple);
+            }
+            return output;
+        }
+
+        private List<string> InputImport(string[] filePaths)
+        {
+            string tuple;
+            List<string> tuples = new List<string>();
+            System.IO.StreamReader file;
+            foreach (string path in filePaths)
+            {
+                file = new System.IO.StreamReader(Environment.CurrentDirectory + @"\..\..\..\Inputs\" + path);
+                while ((tuple = file.ReadLine()) != null)
+                {
+                    if (tuple.StartsWith("%%"))
+                        continue;
+                    tuples.Add(tuple);
+                }
+                file.Close();
+            }
+            return tuples;
         }
     }
 }

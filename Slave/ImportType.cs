@@ -1,41 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Slave
 {
     [Serializable]
     public class FileImport : Import
     {
-        private string[] filePaths;
+        private string[] inputs;
 
-        public FileImport(string[] filePaths)
+        public FileImport(string[] inputs)
         {
-            this.filePaths = filePaths;
+            this.inputs = inputs;
         }
 
         public List<string> Import()
         {
-            List<string> output = InputImport();
-            return output.Count == 0 ? null : output;
-        }
-
-        private List<string> InputImport()
-        {
-            string tuple;
-            List<string> tuples = new List<string>();
-            System.IO.StreamReader file;
-            foreach (string path in filePaths)
-            {
-                file = new System.IO.StreamReader(Environment.CurrentDirectory + @"\..\..\..\Inputs\" + path);
-                while((tuple = file.ReadLine()) != null)
-                {
-                    if (tuple.StartsWith("%%"))
-                        continue;
-                    tuples.Add(tuple);
-                }
-                file.Close();
-            }
-            return tuples;
+            return inputs.ToList().Count == 0 ? null : inputs.ToList();
         }
     }
 
