@@ -160,6 +160,7 @@ namespace PuppetMaster
 
         public void Exit()
         {
+            PuppetMaster.GetInstance().Log("Killing " + _url);
             IRemoteCmdInterface remoteObj = (IRemoteCmdInterface)Activator.GetObject(
                 typeof(IRemoteCmdInterface),
                 _url);

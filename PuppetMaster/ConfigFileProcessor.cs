@@ -152,11 +152,12 @@ namespace PuppetMaster
                 ConnectionPack thingsToSend = new ConnectionPack(cmd, _isLogFull, listUrls, myLogUrl);
                 _whatShouldISentToOperators.Add(opId, thingsToSend);
 
-                if (res[3].StartsWith("OP") && !res[3].EndsWith(".data"))
+                if (res[3].StartsWith("OP") && !res[3].EndsWith(".dat"))
                 {
                     // Put in connection pack of the previous operator the urls of this one. So he can direct its output
                     int op2Id = int.Parse(res[3].Substring(2));
                     _whatShouldISentToOperators[op2Id].ReplicaUrlsOutput = listUrls;
+                    _whatShouldISentToOperators[op2Id].RoutingType = res[8];
                 }
 
                 PuppetMaster.GetInstance().CreateOperator(opId, listUrls);

@@ -37,6 +37,7 @@ namespace CommonTypes
         private List<string> _listUrls;
         private List<string> _replicaUrlsOutput;
         private string _puppetMasterUrl;
+        private string _routingType;
 
         public ConnectionPack(string cmd, bool isLogFull, List<string> listUrls, string puppetMasterUrl)
         {
@@ -57,6 +58,19 @@ namespace CommonTypes
             set
             {
                 _cmd = value;
+            }
+        }
+
+        public string RoutingType
+        {
+            get
+            {
+                return _routingType;
+            }
+
+            set
+            {
+                _routingType = value;
             }
         }
 

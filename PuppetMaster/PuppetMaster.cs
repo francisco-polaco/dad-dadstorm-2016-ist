@@ -192,7 +192,6 @@ namespace PuppetMaster
 
         internal void Exit()
         {
-            if (_logger != null) _logger.Exit();
             foreach (KeyValuePair<int, Operator> entry in _operators)
             {
                 try { entry.Value.Exit();}
@@ -201,6 +200,8 @@ namespace PuppetMaster
                     Log(e.Message);
                 }
             }
+            if (_logger != null) _logger.Exit();
+
         }
 
     }
