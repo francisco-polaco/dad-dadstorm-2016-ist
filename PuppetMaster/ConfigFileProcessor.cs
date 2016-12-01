@@ -48,16 +48,22 @@ namespace PuppetMaster
 
         private void ProcessFile()
         {
-            System.IO.StreamReader file =
-                new System.IO.StreamReader(_configFilePath);
+            StreamReader file =
+                new StreamReader(_configFilePath);
             string line;
+            uint lineNo = 0;
             _fileLines = new List<string>();
             while ((line = file.ReadLine()) != null)
             {
+                lineNo++;
                 if (line.StartsWith("%%") || line.StartsWith("%") ||
                     line.StartsWith("\n") || line.StartsWith("\r\n") || 
                     line.Equals(""))
                     continue; // comments or empty lines
+                if (line.StartsWith(" ")) // case where string has spaces in the start
+                {
+                    MessageBox.Show("The file has a line that starts with a space. It will cause problems. Line " + lineNo);
+                }
                 _fileLines.Add(line);
             }
 
@@ -115,14 +121,17 @@ namespace PuppetMaster
         private void ExecuteLine(string cmd)
         {
             PuppetMaster.GetInstance().Log("Running config file command: " + cmd);
-            if (cmd.StartsWith("Semantics"))
+            if (cmd.StartsWith(" "))
+            {
+                MessageBox.Show("Invalid line to be processed!");
+            }
+            else if (cmd.StartsWith("Semantics"))
             {
                 string[] pieces = cmd.Split(' ');
                 if (pieces.Length == 2)
                 {
                     _sematic = pieces[1];
                 }
-                Console.WriteLine(_sematic);
             }
             else if (cmd.StartsWith("LoggingLevel"))
             {
@@ -139,7 +148,6 @@ namespace PuppetMaster
             }
             else if (cmd.StartsWith("OP"))
             {
-
                 // Operators setup
                 string[] res = cmd.Split(' ');
 
@@ -165,12 +173,13 @@ namespace PuppetMaster
                     _whatShouldISentToOperators[op2Id].ReplicaUrlsOutput = listUrls;
                     _whatShouldISentToOperators[op2Id].RoutingType = res[8];
                 }
-                if (res[0].Equals(("OP1")))
+                if (res[0].Equals("OP1"))
                 {
                     _whatShouldISentToOperators[opId].RoutingTypeToReadFromFile = res[8];
                 }
 
                 PuppetMaster.GetInstance().CreateOperator(opId, listUrls);
+
 
             }
             else
