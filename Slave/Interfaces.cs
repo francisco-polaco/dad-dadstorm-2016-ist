@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CommonTypes;
 
 namespace Slave
 {
@@ -9,17 +10,11 @@ namespace Slave
 
     public interface Route
     {
-        void Route(string input);
+        void Route(TuplePack input);
     }
 
     public interface Process
     {
-        /// <summary>
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns>
-        /// Empty string is returned when the logic of the operator isn't fulfilled!
-        /// </returns>
-        string Process(string input);
+        IList<TuplePack> Process(TuplePack input);
     }
 }

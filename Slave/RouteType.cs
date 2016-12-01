@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using CommonTypes;
 using System.Collections.Generic;
 using System.IO;
@@ -7,17 +6,19 @@ using System.Net.Sockets;
 
 namespace Slave
 {
+    public delegate void RemoteAsyncDelegate(TuplePack tuple);
+
     [Serializable]
     public abstract class RouteParent : Route
     {
-        public abstract void Route(string input);
+        public abstract void Route(TuplePack input);
 
         /// <summary>
         /// Assumes tcp channel created in Slave, since it is used by it!
         /// </summary>
         /// <param name="urls"></param>
         /// <returns></returns>
-        public List<ISlave> GetDownstreamReplicas(List<string> urls)
+        private List<ISlave> GetDownstreamReplicas(List<string> urls)
         {
             List<ISlave> output = new List<ISlave>();
             foreach (var url in urls)
@@ -28,7 +29,7 @@ namespace Slave
             return output;
         }
 
-        public void WriteToFile(string output)
+        private void WriteToFile(string output)
         {
             lock (this)
             {
@@ -55,120 +56,107 @@ namespace Slave
             }
         }
 
+        private string MergeOutput(IList<string> content)
+        {
+            string output = string.Empty;
+
+            if (content.Count == 1)
+                return content[0];
+
+            for (int i = 0; i < content.Count; i++)
+            {
+                output += i == (content.Count - 1) ? content[i] : content[i] + ", ";
+
+            }
+            return output;
+        }
+
+        private void CallNextReplica(int index, List<string> urls, TuplePack inputPack)
+        {
+            RemoteAsyncDelegate remoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[index].Dispatch);
+            IAsyncResult remAr = remoteDel.BeginInvoke(inputPack, null, null);
+        }
+
+        protected void SendTuplePack(int index, List<string> urls, TuplePack inputPack)
+        {
+            try
+            {
+                CallNextReplica(index, urls, inputPack);
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("Could not locate " + urls[index]);
+            }
+        }
+
+        protected void WriteTuplePack(IList<string> content)
+        {
+            WriteToFile(MergeOutput(content));
+        }
     }
 
     [Serializable]
-    public class Primary : RouteParent, Route
+    public class Primary : RouteParent
     {
-        private List<string> urls;
+        private List<string> _urls;
 
         public Primary(List<string> urls)
         {
-            this.urls = urls;
+            _urls = urls;
         }
 
-        public override void Route(string input)
+        public override void Route(TuplePack input)
         {
-            try
-            {
-                if (urls.Count != 0)
-                {
-                    RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[0].Dispatch);
-                    //AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
-                    // Call remote method
-                    IAsyncResult RemAr = RemoteDel.BeginInvoke(input, null, null);
-                }
-                else
-                {
-                    WriteToFile(input);
-                }
-            }
-            catch (SocketException)
-            {
-                Console.WriteLine("Could not locate " + urls[0]);
-            }
-            
+            SendTuplePack(0, _urls, input);
         }
     }
 
     [Serializable]
-    public class Random : RouteParent, Route
+    public class Random : RouteParent
     {
-        private List<string> urls;
+        private List<string> _urls;
 
         public Random(List<string> urls)
         {
-            this.urls = urls;
+            _urls = urls;
         }
 
-        public override void Route(string input)
+        public override void Route(TuplePack input)
         {
             System.Random rnd = new System.Random();
             // rnd.Next(replica.Count) - number between [0;replica.count[
-            int randomInt = rnd.Next(urls.Count);
-            try
-            {
-                if (urls.Count != 0)
-                {
-                    RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[randomInt].Dispatch);
-                    //AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
-                    // Call remote method
-                    IAsyncResult RemAr = RemoteDel.BeginInvoke(input, null, null);
-                }
-                else
-                {
-                    WriteToFile(input);
-                }
-            }
-            catch (SocketException)
-            {
-                Console.WriteLine("Could not locate " + urls[randomInt]);
-            }
+            int randomInt = rnd.Next(_urls.Count);
+            SendTuplePack(randomInt, _urls, input);
         }
     }
 
     [Serializable]
-    public class Hashing : RouteParent, Route
+    public class Hashing : RouteParent
     {
-        private List<string> urls;
-        private int fieldID;
+        private List<string> _urls;
+        private int _fieldId;
 
-        public Hashing(List<string> urls, string fieldID)
+        public Hashing(List<string> urls, string fieldId)
         {
-            this.urls = urls;
-            this.fieldID = int.Parse(fieldID);
+            _urls = urls;
+            _fieldId = int.Parse(fieldId);
         }
 
-        public override void Route(string input)
+        public override void Route(TuplePack input)
         {
             int hashNumber = 0;
-            if (input.Contains(","))
-            {
-                string[] content = input.Split(',');
-                if(urls.Count != 0)
-                    hashNumber = (content[fieldID].Trim().GetHashCode())%(urls.Count);
-                else
-                {
-                    WriteToFile(input);
-                }
-            }
-
-            try
-            {
-                if (urls.Count != 0)
-                {
-                    RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[hashNumber].Dispatch);
-                    //AsyncCallback RemoteCallback = new AsyncCallback(this.OnRemoteCallback);
-                    // Call remote method
-                    IAsyncResult RemAr = RemoteDel.BeginInvoke(input, null, null);
-                }
-            }
-            catch (SocketException)
-            {
-                Console.WriteLine("Could not locate " + urls[hashNumber]);
-            }
+            if (_urls.Count != 0)
+                hashNumber = (input.Content[_fieldId - 1].GetHashCode()%(_urls.Count));
+            SendTuplePack(hashNumber, _urls, input);
         }
     }
 
-    public delegate void RemoteAsyncDelegate(string tuple);
+    [Serializable]
+    public class Output : RouteParent
+    {
+        public override void Route(TuplePack input)
+        {
+            WriteTuplePack(input.Content);
+        }
+    }
 }

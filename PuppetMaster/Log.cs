@@ -84,7 +84,7 @@ namespace PuppetMaster
             }
         }
 
-        public void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
+        public void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
         {
             string res = "";
             foreach (string field in tupleFields)

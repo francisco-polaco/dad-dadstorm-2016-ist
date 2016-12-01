@@ -39,82 +39,86 @@ namespace Slave
 
     public class Slave : MarshalByRefObject, ISlave, IRemoteCmdInterface, ILogUpdate
     {
-        private string url;
-        private Import importObj;
-        private Route routeObj;
-        private Process processObj;
-        private State state;
-        private ILogUpdate puppetLogProxy;
-        private string puppetMasterUrl;
-        bool isLogFull;
-        Queue<string> jobQueue;
+        private int _seqNumber = 0;
+        private string _url;
+        private Import _importObj;
+        private Route _routeObj;
+        private Process _processObj;
+        private State _state;
+        private ILogUpdate _puppetLogProxy;
+        private string _puppetMasterUrl;
+        bool _isLogFull;
+        Queue<TuplePack> _jobQueue;
 
 
         public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel)
         {
-            this.importObj = importObj;
-            this.routeObj = routeObj;
-            this.processObj = processObj;
-            this.url = url;
-            this.puppetMasterUrl = puppetMasterUrl;
-            this.isLogFull = logLevel;
-            state = new FrozenState(this);
-            jobQueue = new Queue<string>();
+            this._importObj = importObj;
+            this._routeObj = routeObj;
+            this._processObj = processObj;
+            this._url = url;
+            this._puppetMasterUrl = puppetMasterUrl;
+            this._isLogFull = logLevel;
+            _state = new FrozenState(this);
+            _jobQueue = new Queue<TuplePack>();
             init();
         }
 
         // getters, setters
 
-        public Queue<string> JobQueue
+        public int SeqNumber
         {
-            get { return jobQueue;}
+            get { return _seqNumber; }
+            set { _seqNumber = value; }
         }
+
+        public Queue<TuplePack> JobQueue => _jobQueue;
 
         public string Url
         {
-            get { return url; }
-            set { url = value; }
+            get { return _url; }
+            set { _url = value; }
         }
 
         public string PuppetMasterUrl
         {
-            get { return puppetMasterUrl; }
-            set { puppetMasterUrl = value; }
+            get { return _puppetMasterUrl; }
+            set { _puppetMasterUrl = value; }
         }
 
         public State State
         {
-            get { return state; }
-            set { state = value; }
+            get { return _state; }
+            set { _state = value; }
         }
             
         public ILogUpdate PuppetLogProxy
         {
-            get { return puppetLogProxy; }
+            get { return _puppetLogProxy; }
         }
 
         public Import ImportObj
         {
-            get { return importObj; }
-            set { importObj = value; }
+            get { return _importObj; }
+            set { _importObj = value; }
         }
 
         public Process ProcessObj
         {
-            get { return processObj; }
-            set { processObj = value; }
+            get { return _processObj; }
+            set { _processObj = value; }
         }
 
         public Route RouteObj
         {
-            get { return routeObj; }
-            set { routeObj = value; }
+            get { return _routeObj; }
+            set { _routeObj = value; }
         }
 
         public bool IsLogFull
         {
-            get { return isLogFull;  }
-            set { isLogFull = value; }
+            get { return _isLogFull;  }
+            set { _isLogFull = value; }
         }
         
         // other methods
@@ -122,28 +126,28 @@ namespace Slave
         public void init()
         {
             // get port
-            int portStart = this.url.IndexOf(':', 4) + 1; // index of first digit
-            int portLength = this.url.IndexOf("/", portStart) - portStart; // number of digits
-            int port = int.Parse(url.Substring(portStart, portLength));
+            int portStart = _url.IndexOf(':', 4) + 1; // index of first digit
+            int portLength = _url.IndexOf("/", portStart) - portStart; // number of digits
+            int port = int.Parse(_url.Substring(portStart, portLength));
 
             // init server
             TcpChannel channel = new TcpChannel(port);
             ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(this, "op", typeof(Slave));
-            Console.WriteLine("Slave with url " + url + " is listening!");
+            Console.WriteLine("Slave with url " + _url + " is listening!");
 
             // init client to log puppetLogProxy
-           puppetLogProxy = (ILogUpdate) Activator.GetObject(typeof(ILogUpdate), puppetMasterUrl);
+           _puppetLogProxy = (ILogUpdate) Activator.GetObject(typeof(ILogUpdate), _puppetMasterUrl);
 
-            if (puppetLogProxy == null)
-                System.Console.WriteLine("Could not connect to PuppetMaster on " + puppetMasterUrl);
+            if (_puppetLogProxy == null)
+                System.Console.WriteLine("Could not connect to PuppetMaster on " + _puppetMasterUrl);
         }
 
         // do stuff
-        public void Dispatch(string input)
+        public void Dispatch(TuplePack input)
         {
             Console.WriteLine("Dispatch method called...");
-            state.Dispatch(input);
+            _state.Dispatch(input);
         }
 
         // puppet master commands
@@ -151,53 +155,53 @@ namespace Slave
         // start processing
         public void Start()
         {
-            Console.WriteLine("Slave with url " + url + " is starting!");
-            state = new UnfrozenState(this);
+            Console.WriteLine("Slave with url " + _url + " is starting!");
+            _state = new UnfrozenState(this);
             Dispatch(null);
         }
 
         // sleep ms milliseconds
         public void Interval(int ms)
         {
-            Console.WriteLine("Slave with url " + url + " going to sleep!");
+            Console.WriteLine("Slave with url " + _url + " going to sleep!");
             Thread.Sleep(ms);
         }
 
         // print status to console
         public void Status()
         {
-            System.Console.WriteLine("Slave at " + url + " is up and running!");
+            System.Console.WriteLine("Slave at " + _url + " is up and running!");
         }
 
         // crash process
         public void Crash()
         {
-            System.Console.WriteLine("Slave " + url + " got crash command...");
+            System.Console.WriteLine("Slave " + _url + " got crash command...");
             Environment.Exit(1);      
         }
 
         // change state to frozen
         public void Freeze()
         {
-            state = new FrozenState(this);
-            Console.WriteLine("Slave with url " + url + " is now fozen!");
+            _state = new FrozenState(this);
+            Console.WriteLine("Slave with url " + _url + " is now fozen!");
         }
 
         // change state to unfrozen
         public void Unfreeze()
         {
-            state = new UnfrozenState(this);
+            _state = new UnfrozenState(this);
 
-            Console.WriteLine("Slave with url " + url + " is now unfozen!");
+            Console.WriteLine("Slave with url " + _url + " is now unfozen!");
             // dispatch all queued jobs
             try
             {
-                string tuple = null;
-                for(int i = 0; i < jobQueue.Count; i++)
+                TuplePack tuple = null;
+                for(int i = 0; i < _jobQueue.Count; i++)
                 {
-                    tuple = getJob();
-                    Console.WriteLine("Slave with url " + url + " dispatching job #" + i + " in the queue!");
-                    state.Dispatch(tuple);
+                    tuple = GetJob();
+                    Console.WriteLine("Slave with url " + _url + " dispatching job #" + i + " in the queue!");
+                    _state.Dispatch(tuple);
                 }  
             }
             catch (InvalidOperationException ex)
@@ -211,28 +215,28 @@ namespace Slave
         {
             Unfreeze(); // even if the current state is unfrozen, it unfrozes again to dispatch queued jobs
 
-            System.Console.WriteLine("Slave " + url + " exiting...");
+            System.Console.WriteLine("Slave " + _url + " exiting...");
             Environment.Exit(1);
         }
 
         // log to Puppet Master (or not!)
-        public void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
+        public void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
         {
-            state.ReplicaUpdate(replicaUrl, tupleFields);
+            _state.ReplicaUpdate(replicaUrl, tupleFields);
         }
 
         /// auxiliary: add job to jobQueue
-        public void addJob(string tuple)
+        public void AddJob(TuplePack tuple)
         {
-            jobQueue.Enqueue(tuple);
+            _jobQueue.Enqueue(tuple);
         }
 
         /// auxiliary: get job from jobQueue
         /// 
         /// <exception cref="InvalidOperationException">Thrown if Queue is empty.</exception>
-        public string getJob()
+        public TuplePack GetJob()
         {
-            return jobQueue.Dequeue();
+            return _jobQueue.Dequeue();
         }
     }
 }

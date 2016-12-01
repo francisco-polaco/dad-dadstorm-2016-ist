@@ -1,26 +1,22 @@
 ﻿using CommonTypes;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Slave
 {
     public abstract class State : ISlave, ILogUpdate
     {
-        private Slave slaveObj;
+        private Slave _slaveObj;
 
-        public Slave SlaveObj
+        public Slave SlaveObj => _slaveObj;
+
+        protected State(Slave slave)
         {
-            get { return slaveObj; }
+            _slaveObj = slave;        
         }
 
-        public State(Slave slave)
-        {
-            this.slaveObj = slave;        
-        }
+        public abstract void Dispatch(TuplePack input);
 
-        public abstract void Dispatch(string input);
-
-        public abstract void ReplicaUpdate(string replicaUrl, List<string> tupleFields);
+        public abstract void ReplicaUpdate(string replicaUrl, IList<string> tupleFields);
 
     }
 }

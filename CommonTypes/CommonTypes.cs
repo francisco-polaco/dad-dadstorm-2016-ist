@@ -5,7 +5,7 @@ namespace CommonTypes
     public interface ILogUpdate
     {
         //void Update(string log);
-        void ReplicaUpdate(string replicaUrl, List<string> tupleFields);
+        void ReplicaUpdate(string replicaUrl, IList<string> tupleFields);
     }
 
     public interface IRemoteCmdInterface
@@ -21,13 +21,47 @@ namespace CommonTypes
 
     public interface ISlave
     {
-        void Dispatch(string a);
+        void Dispatch(TuplePack pack);
     }
 
     public interface IPcsSlaveLaunch
     {
         void Launch(ConnectionPack input);
     }
+
+    [System.Serializable]
+    public class TuplePack
+    {
+        private string _opUrl;
+        private int _seqNumber;
+        private IList<string> _content;
+
+        public string OpUrl
+        {
+            get { return _opUrl; }
+            set { _opUrl = value; }
+        }
+
+        public int SeqNumber
+        {
+            get { return _seqNumber; }
+            set { _seqNumber = value; }
+        }
+
+        public IList<string> Content
+        {
+            get { return _content; }
+            set { _content = value; }
+        }
+
+        public TuplePack(int seqNumber, string opUrl, IList<string> content)
+        {
+            _seqNumber = seqNumber;
+            _opUrl = opUrl;
+            _content = content;
+        }
+    }
+
 
     [System.Serializable]
     public class ConnectionPack

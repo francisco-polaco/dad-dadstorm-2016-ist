@@ -5,19 +5,55 @@ using System.Linq;
 namespace Slave
 {
     [Serializable]
-    public class FileImport : Import
+    public class Input : Import
     {
-        private string[] inputs;
+        private string[] _inputs;
 
-        public FileImport(string[] inputs)
+        public Input(string[] inputs)
         {
-            this.inputs = inputs;
+            _inputs = inputs;
         }
 
         public List<string> Import()
         {
-            return inputs.ToList().Count == 0 ? null : inputs.ToList();
+            return _inputs.ToList().Count == 0 ? null : _inputs.ToList();
         }
+    }
+
+    [Serializable]
+    public class FileImport : Import
+    {
+        private string[] _filePaths;
+
+        public FileImport(string[] filePaths)
+        {
+            _filePaths = filePaths;
+        }
+
+        public List<string> Import()
+        {
+            return InputImport(_filePaths);
+        }
+
+        private List<string> InputImport(string[] filePaths)
+        {
+            string tuple;
+            List<string> tuples = new List<string>();
+            System.IO.StreamReader file;
+            foreach (string path in filePaths)
+            {
+                file = new System.IO.StreamReader(Environment.CurrentDirectory + @"\..\..\..\Inputs\" + path);
+                while ((tuple = file.ReadLine()) != null)
+                {
+                    if (tuple.StartsWith("%%"))
+                        continue;
+                    tuples.Add(tuple);
+                }
+                file.Close();
+            }
+            return tuples;
+        }
+
     }
 
     [Serializable]

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CommonTypes;
 
 namespace Slave
 {
@@ -12,13 +13,13 @@ namespace Slave
         {
         }
 
-        public override void Dispatch(string input)
+        public override void Dispatch(TuplePack input)
         {
             // put job in queue
-            SlaveObj.addJob(input);
+            SlaveObj.AddJob(input);
         }
 
-        public override void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
+        public override void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
         {
             // nothing to do (no jobs processed)
             throw new NotImplementedException();
@@ -32,24 +33,13 @@ namespace Slave
         {
         }
 
-        public override void Dispatch(string input)
+        public override void Dispatch(TuplePack input)
         { 
             if (input == null) // start command was issued
             {
-                string tuple;
-                string outp;
                 while (SlaveObj.JobQueue.Count != 0)
                 {
-                    tuple = SlaveObj.getJob();
-                    outp = SlaveObj.ProcessObj.Process(tuple);
-
-                    if (outp.Equals(string.Empty))
-                        continue;
-
-                    SlaveObj.RouteObj.Route(outp);
-
-                    // log with PuppetMaster
-                    ReplicaUpdate(SlaveObj.Url, SplitTuple(outp));
+                    ProcessRoutePack(SlaveObj.GetJob());
                 }
 
                 List<string> tuples = SlaveObj.ImportObj.Import(); // try importing
@@ -60,46 +50,68 @@ namespace Slave
                 // input via file
                 foreach (string s in tuples)
                 {
-                    Console.WriteLine("Processing tuple: " + s);
-                    string output = SlaveObj.ProcessObj.Process(s);
-
-                    
-                    if (output.Equals(string.Empty))
-                        continue;
-
-                    SlaveObj.RouteObj.Route(output);
-
-                    // log with PuppetMaster
-                    ReplicaUpdate(SlaveObj.Url, SplitTuple(output));
+                    ProcessRoutePack(new TuplePack(-2, SlaveObj.Url, SplitTuple(s)));
                 }
             }
             else // upstream operator has sent a tuple
             {
-                Console.WriteLine("Processing tuple: " + input);
-
-                string output = SlaveObj.ProcessObj.Process(input);
-                SlaveObj.RouteObj.Route(output);
-
-                // log with PuppetMaster
-                ReplicaUpdate(SlaveObj.Url, SplitTuple(output));
+                ProcessRoutePack(input);
             }
         }
 
-        public override void ReplicaUpdate(string replicaUrl, List<string> tupleFields)
+        // Responsible to process and route the tuples
+        private void ProcessRoutePack(TuplePack input)
         {
-            // send log
+            Console.WriteLine("Attempting to process tuple: " + MergeOutput(input.Content));
+            IList<TuplePack> tuplesList = SlaveObj.ProcessObj.Process(input);
+
+            string processedTuples = string.Empty;
+            if (tuplesList != null)
+            {
+                foreach (var tuplepack in tuplesList)
+                {
+                    tuplepack.OpUrl = SlaveObj.Url;
+                    tuplepack.SeqNumber = SlaveObj.SeqNumber;
+                    SlaveObj.SeqNumber++;
+                    // Route
+                    SlaveObj.RouteObj.Route(tuplepack);
+                    ReplicaUpdate(SlaveObj.Url, tuplepack.Content);
+                    // Debug purposes
+                    processedTuples += tuplepack.Content.Count == 1 ? tuplepack.Content[0] + " " : MergeOutput(tuplepack.Content) + " ";
+                }
+                Console.WriteLine("Processed from: " + MergeOutput(input.Content) + " : " + processedTuples);
+            }
+        }
+
+        // Log the events
+        public override void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
+        {
             SlaveObj.PuppetLogProxy.ReplicaUpdate(replicaUrl, tupleFields);
         }
 
-        // split tuple in fields
-        public List<string> SplitTuple(string tuple)
+        // Split tuple in fields
+        private List<string> SplitTuple(string tuple)
         {
-            
             string pattern = @",|\s";
-            string[] tuple_fields = Regex.Split(tuple, pattern).Where(s => s != String.Empty).ToArray<string>();
+            string[] tupleFields = Regex.Split(tuple, pattern).Where(s => s != String.Empty).ToArray<string>();
 
-            return tuple_fields.ToList<string>();
+            return tupleFields.ToList<string>();
         }
-    }
 
+        // Merge the tuple
+        private string MergeOutput(IList<string> content)
+        {
+            string output = string.Empty;
+
+            if (content.Count == 1)
+                return content[0];
+
+            for (int i = 0; i < content.Count; i++)
+            {
+                output += i == (content.Count - 1) ? content[i] : content[i] + ", ";
+            }
+            return output;
+        }
+
+    }
 }

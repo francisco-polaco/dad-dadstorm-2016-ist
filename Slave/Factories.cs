@@ -10,14 +10,17 @@ namespace Slave
         /// <param name="specs">
         /// specs[0] = type of processing operator
         /// inputs = string[] inputs
+        /// filePaths = string[] filePaths
         /// </param>
         /// <returns></returns>
-        public override Import GetImport(string[] specs, string[] inputs)
+        public override Import GetImport(string[] specs, string[] inputs, string[] filePaths)
         {
             string operatorType = specs[0];
+            if (operatorType.ToLower().Equals("input"))
+                return new Input(inputs);
             if (operatorType.ToLower().Equals("fileimport"))
-                return new FileImport(inputs);
-            else if (operatorType.ToLower().Equals("opimport"))
+                return new FileImport(filePaths);
+            if (operatorType.ToLower().Equals("opimport"))
                 return new OpImport();
             return null;
         }
@@ -35,7 +38,7 @@ namespace Slave
 
     public class ProcessingFactory : AbstractFactory
     {
-        public override Import GetImport(string[] specs, string[] inputs)
+        public override Import GetImport(string[] specs, string[] inputs, string[] filePaths)
         {
             return null;
         }
@@ -54,16 +57,15 @@ namespace Slave
             string operatorType = specs[0];
             if (operatorType.ToLower().Equals("uniq"))
                 return new Uniq(specs[1]);
-            else if (operatorType.ToLower().Equals("count"))
+            if (operatorType.ToLower().Equals("count"))
                 return new Count();
-            else if (operatorType.ToLower().Equals("dup"))
+            if (operatorType.ToLower().Equals("dup"))
                 return new Dup();
-            else if (operatorType.ToLower().Equals("filter"))
+            if (operatorType.ToLower().Equals("filter"))
                 return new Filter(specs[1], specs[2], specs[3]);
-            else if (operatorType.ToLower().Equals("custom"))
+            if (operatorType.ToLower().Equals("custom"))
                 return new Custom(specs[1], specs[2], specs[3]);
-            else
-                return null;
+            return null;
         }
 
         public override Route GetRouting(string[] specs, List<string> urls)
@@ -74,7 +76,7 @@ namespace Slave
 
     public class RoutingFactory : AbstractFactory
     {
-        public override Import GetImport(string[] specs, string[] inputs)
+        public override Import GetImport(string[] specs, string[] inputs, string[] filePaths)
         {
             return null;
         }
@@ -99,12 +101,13 @@ namespace Slave
             string operatorType = specs[0];
             if (operatorType.ToLower().Equals("primary"))
                 return new Primary(urls);
-            else if (operatorType.ToLower().Equals("random"))
+            if (operatorType.ToLower().Equals("random"))
                 return new Random(urls);
-            else if (operatorType.ToLower().Equals("hashing"))
+            if (operatorType.ToLower().Equals("hashing"))
                 return new Hashing(urls, specs[1]);
-            else
-                return null;
+            if (operatorType.ToLower().Equals("output"))
+                return new Output();
+            return null;
         }
     }
 }
