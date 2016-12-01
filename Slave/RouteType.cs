@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using CommonTypes;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.Remoting.Messaging;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Slave
@@ -13,7 +16,22 @@ namespace Slave
     [Serializable]
     public abstract class RouteParent : Route
     {
-        private List<int> _invalidIndexes = new List<int>();
+       /* public static void RemoteAsyncCallBack(IAsyncResult ar, TuplePack tp)
+        {
+            RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)ar).AsyncDelegate;
+            Console.WriteLine(((TuplePack)del.Target).Content[0]);
+            try
+            {
+                del.EndInvoke(ar);
+                TuplePack tp = (TuplePack) del.Target;
+            }
+            catch (SocketException e)
+            {
+                
+            }
+        }*/
+
+        private ConcurrentQueue<int> _invalidIndexes = new ConcurrentQueue<int>();
         private string _semantic;
 
         protected RouteParent(string semantic)
@@ -84,19 +102,46 @@ namespace Slave
         private void CallNextReplica(int index, List<string> urls, TuplePack inputPack)
         {
             RemoteAsyncDelegate remoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[index].Dispatch);
-            IAsyncResult remAr = remoteDel.BeginInvoke(inputPack, null, null);
-            if (!_semantic.Equals("at-most-once")) { 
-                remAr.AsyncWaitHandle.WaitOne();
-                remoteDel.EndInvoke(remAr);
-            }
+            /*AsyncCallback remoteCallback = new AsyncCallback(RemoteAsyncCallBack);
+            IAsyncResult remAr = remoteDel.BeginInvoke(inputPack, remoteCallback, null);*/
+
+            remoteDel.BeginInvoke(
+                inputPack,
+                (IAsyncResult ar) =>
+                {
+                    try
+                    {
+                        remoteDel.EndInvoke(ar);
+                    }
+                    catch(SocketException e) {
+                        Console.WriteLine("Could not locate " + urls[index]);
+                        // try again dynamic reconfiguration
+                        if (!_invalidIndexes.Contains(index))
+                            _invalidIndexes.Enqueue(index);
+                        if (_invalidIndexes.Count == urls.Count)
+                        {
+                            Console.WriteLine("All downstream replicas are down!");
+                            return;
+                        }
+                        for (int i = 0; i < urls.Count; i++)
+                        {
+                            if (!_invalidIndexes.Contains(i))
+                            {
+                                CallNextReplica(i, urls, inputPack);
+                                return;
+                            }
+                        }
+                    }
+                },
+                null);
         }
 
         protected void SendTuplePack(int index, List<string> urls, TuplePack inputPack)
         {
-            try
-            {
+            /*try
+            {*/
                 CallNextReplica(index, urls, inputPack);
-            }
+            /*}
             catch (SocketException)
             {
                 Console.WriteLine("Could not locate " + urls[index]);
@@ -106,11 +151,13 @@ namespace Slave
                     return;
                 for (int i = 0; i < urls.Count; i++)
                 {
-                    if(!_invalidIndexes.Contains(i))
+                    if (!_invalidIndexes.Contains(i)) {
                         SendTuplePack(i, urls, inputPack);
+                        return;
+                    }
                 }   
                 Console.WriteLine("All downstream replicas are down!");
-            }
+            }*/
         }
 
         protected void WriteTuplePack(IList<string> content)
