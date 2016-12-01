@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.Remoting;
+using System.Runtime.Serialization;
 
 namespace CommonTypes
 {
@@ -60,8 +62,18 @@ namespace CommonTypes
             _opUrl = opUrl;
             _content = content;
         }
-    }
 
+        public override bool Equals(object obj)
+        {
+            TuplePack o = (TuplePack) obj;
+            for (int i = 0; i < Content.Count; i++)
+            {
+                if (Content[i] != o.Content[i])
+                    return false;
+            }
+            return true;
+        }
+    }
 
     [System.Serializable]
     public class ConnectionPack

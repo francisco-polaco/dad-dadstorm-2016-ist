@@ -21,8 +21,10 @@ namespace Slave
             string url = (string)DeserializeObject(args[3]);
             string puppetMasterUrl = (string)DeserializeObject(args[4]);
             bool logLevel = (bool)DeserializeObject(args[5]);
-
+            
             var slave = new Slave(import,route,process,url,puppetMasterUrl,logLevel);
+
+            Console.Title = url;
             Console.ReadLine();
         }
 

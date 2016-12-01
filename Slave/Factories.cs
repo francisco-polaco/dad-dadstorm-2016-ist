@@ -95,6 +95,7 @@ namespace Slave
         /// <param name="urls">
         /// urls = downstream replicas urls
         /// </param>
+        /// <param name="semantic"></param>
         /// <returns></returns>
         public override Route GetRouting(string[] specs, List<string> urls, string semantic)
         {
@@ -106,7 +107,7 @@ namespace Slave
             if (operatorType.ToLower().Equals("hashing"))
                 return new Hashing(urls, specs[1], semantic);
             if (operatorType.ToLower().Equals("output"))
-                return new Output(null);
+                return new Output(semantic);
             return null;
         }
     }

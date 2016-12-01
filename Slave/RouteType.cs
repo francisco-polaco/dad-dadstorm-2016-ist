@@ -32,6 +32,7 @@ namespace Slave
         }*/
 
         private ConcurrentQueue<int> _invalidIndexes = new ConcurrentQueue<int>();
+        private ConcurrentDictionary<string, IList<TuplePack>> _sentTuples = new ConcurrentDictionary<string, IList<TuplePack>>();
         private string _semantic;
 
         protected RouteParent(string semantic)
@@ -101,39 +102,52 @@ namespace Slave
 
         private void CallNextReplica(int index, List<string> urls, TuplePack inputPack)
         {
+            _sentTuples.TryAdd(inputPack.OpUrl, new List<TuplePack>());
             RemoteAsyncDelegate remoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[index].Dispatch);
-            /*AsyncCallback remoteCallback = new AsyncCallback(RemoteAsyncCallBack);
-            IAsyncResult remAr = remoteDel.BeginInvoke(inputPack, remoteCallback, null);*/
-
-            remoteDel.BeginInvoke(
-                inputPack,
-                (IAsyncResult ar) =>
-                {
-                    try
+            if (_semantic.Equals("at-most-once"))
+                remoteDel.BeginInvoke(inputPack, null, null);
+            else { 
+                remoteDel.BeginInvoke(
+                    inputPack,
+                    (IAsyncResult ar) =>
                     {
-                        remoteDel.EndInvoke(ar);
-                    }
-                    catch(SocketException e) {
-                        Console.WriteLine("Could not locate " + urls[index]);
-                        // try again dynamic reconfiguration
-                        if (!_invalidIndexes.Contains(index))
-                            _invalidIndexes.Enqueue(index);
-                        if (_invalidIndexes.Count == urls.Count)
+                        try
                         {
-                            Console.WriteLine("All downstream replicas are down!");
-                            return;
+                            remoteDel.EndInvoke(ar);
+                            _sentTuples[inputPack.OpUrl].Add(inputPack);
                         }
-                        for (int i = 0; i < urls.Count; i++)
-                        {
-                            if (!_invalidIndexes.Contains(i))
-                            {
-                                CallNextReplica(i, urls, inputPack);
-                                return;
-                            }
+                        catch(SocketException e) {
+                            TryAgain(inputPack, index, urls);
                         }
-                    }
-                },
-                null);
+                    },
+                    null);
+            }
+        }
+
+        private void TryAgain(TuplePack inputPack, int index, List<string> urls)
+        {
+            if (_semantic.Equals("exactly-once"))
+            {
+                if (_sentTuples[inputPack.OpUrl].Contains(inputPack))
+                    return;
+            }
+            Console.WriteLine("Could not locate " + urls[index]);
+            // try again dynamic reconfiguration
+            if (!_invalidIndexes.Contains(index))
+                _invalidIndexes.Enqueue(index);
+            if (_invalidIndexes.Count == urls.Count)
+            {
+                Console.WriteLine("All downstream replicas are down!");
+                return;
+            }
+            for (int i = 0; i < urls.Count; i++)
+            {
+                if (!_invalidIndexes.Contains(i))
+                {
+                    CallNextReplica(i, urls, inputPack);
+                    return;
+                }
+            }
         }
 
         protected void SendTuplePack(int index, List<string> urls, TuplePack inputPack)

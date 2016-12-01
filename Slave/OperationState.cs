@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using CommonTypes;
 
@@ -17,6 +18,7 @@ namespace Slave
         {
             // put job in queue
             SlaveObj.AddJob(input);
+            throw new SocketException();
         }
 
         public override void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
