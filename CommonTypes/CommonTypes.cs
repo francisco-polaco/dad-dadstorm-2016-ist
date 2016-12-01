@@ -73,14 +73,22 @@ namespace CommonTypes
         private string _puppetMasterUrl;
         private string _routingType;
         private string _routingTypeToReadFromFile;
+        private string _semantic;
 
-        public ConnectionPack(string cmd, bool isLogFull, List<string> listUrls, string puppetMasterUrl)
+        public ConnectionPack(string cmd, bool isLogFull, List<string> listUrls, string puppetMasterUrl, string semantic)
         {
             _cmd = cmd;
             _isLogFull = isLogFull;
             _listUrls = listUrls;
             _puppetMasterUrl = puppetMasterUrl;
+            _semantic = semantic;
             _replicaUrlsOutput = new List<string>();
+        }
+
+        public string Semantic
+        {
+            get { return _semantic; }
+            set { _semantic = value; }
         }
 
         public string Cmd

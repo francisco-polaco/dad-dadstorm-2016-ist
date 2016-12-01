@@ -1,8 +1,10 @@
 ﻿using System;
 using CommonTypes;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Slave
 {
@@ -11,6 +13,14 @@ namespace Slave
     [Serializable]
     public abstract class RouteParent : Route
     {
+        private List<int> _invalidIndexes = new List<int>();
+        private string _semantic;
+
+        protected RouteParent(string semantic)
+        {
+            _semantic = semantic;
+        }
+
         public abstract void Route(TuplePack input);
 
         /// <summary>
@@ -75,6 +85,10 @@ namespace Slave
         {
             RemoteAsyncDelegate remoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[index].Dispatch);
             IAsyncResult remAr = remoteDel.BeginInvoke(inputPack, null, null);
+            if (!_semantic.Equals("at-most-once")) { 
+                remAr.AsyncWaitHandle.WaitOne();
+                remoteDel.EndInvoke(remAr);
+            }
         }
 
         protected void SendTuplePack(int index, List<string> urls, TuplePack inputPack)
@@ -86,6 +100,16 @@ namespace Slave
             catch (SocketException)
             {
                 Console.WriteLine("Could not locate " + urls[index]);
+                // try again dynamic reconfiguration
+                _invalidIndexes.Add(index);
+                if (_invalidIndexes.Count == urls.Count)
+                    return;
+                for (int i = 0; i < urls.Count; i++)
+                {
+                    if(!_invalidIndexes.Contains(i))
+                        SendTuplePack(i, urls, inputPack);
+                }   
+                Console.WriteLine("All downstream replicas are down!");
             }
         }
 
@@ -100,7 +124,7 @@ namespace Slave
     {
         private List<string> _urls;
 
-        public Primary(List<string> urls)
+        public Primary(List<string> urls, string semantic) : base(semantic)
         {
             _urls = urls;
         }
@@ -116,7 +140,7 @@ namespace Slave
     {
         private List<string> _urls;
 
-        public Random(List<string> urls)
+        public Random(List<string> urls, string semantic) : base(semantic)
         {
             _urls = urls;
         }
@@ -136,7 +160,7 @@ namespace Slave
         private List<string> _urls;
         private int _fieldId;
 
-        public Hashing(List<string> urls, string fieldId)
+        public Hashing(List<string> urls, string fieldId, string semantic) : base(semantic)
         {
             _urls = urls;
             _fieldId = int.Parse(fieldId);
@@ -154,6 +178,10 @@ namespace Slave
     [Serializable]
     public class Output : RouteParent
     {
+        public Output(string semantic) : base(semantic)
+        {
+        }
+
         public override void Route(TuplePack input)
         {
             WriteTuplePack(input.Content);

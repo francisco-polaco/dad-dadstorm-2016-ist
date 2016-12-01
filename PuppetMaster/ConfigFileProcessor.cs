@@ -24,6 +24,7 @@ namespace PuppetMaster
         private volatile uint _isItRunning = 0; // 1 full speed , 2 step by step
         private volatile bool _wereOperatorsCreated = false;
         private bool _isLogFull = false;
+        private string _sematic;
 
         private Dictionary<int, ConnectionPack> _whatShouldISentToOperators 
             = new Dictionary<int, ConnectionPack>();
@@ -116,7 +117,12 @@ namespace PuppetMaster
             PuppetMaster.GetInstance().Log("Running config file command: " + cmd);
             if (cmd.StartsWith("Semantics"))
             {
-                // Next time
+                string[] pieces = cmd.Split(' ');
+                if (pieces.Length == 2)
+                {
+                    _sematic = pieces[1];
+                }
+                Console.WriteLine(_sematic);
             }
             else if (cmd.StartsWith("LoggingLevel"))
             {
@@ -149,7 +155,7 @@ namespace PuppetMaster
 
                 string myLogUrl = "tcp://" + ip + ":" + PuppetMaster.Port + "/" + PuppetMaster.RemoteName;
                 PuppetMaster.GetInstance().Log("IP Sent for PCS: " + myLogUrl);
-                ConnectionPack thingsToSend = new ConnectionPack(cmd, _isLogFull, listUrls, myLogUrl);
+                ConnectionPack thingsToSend = new ConnectionPack(cmd, _isLogFull, listUrls, myLogUrl, _sematic);
                 _whatShouldISentToOperators.Add(opId, thingsToSend);
 
                 if (res[3].StartsWith("OP") && !res[3].EndsWith(".dat"))

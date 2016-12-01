@@ -102,7 +102,7 @@ namespace ProcessCreationService
             else
                 routingTokens = Regex.Split("Output", routingPattern).Where(s => s != String.Empty).ToArray<string>();
 
-            routeObj = routingFactory.GetRouting(routingTokens, downstreamUrls);
+            routeObj = routingFactory.GetRouting(routingTokens, downstreamUrls, input.Semantic.ToLower());
 
             /*** create processing object ***/
             AbstractFactory processingFactory = new ProcessingFactory();

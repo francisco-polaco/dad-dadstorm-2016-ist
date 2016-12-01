@@ -30,7 +30,7 @@ namespace Slave
             return null;
         }
 
-        public override Route GetRouting(string[] specs, List<string> urls)
+        public override Route GetRouting(string[] specs, List<string> urls, string semantic)
         {
             return null;
         }
@@ -68,7 +68,7 @@ namespace Slave
             return null;
         }
 
-        public override Route GetRouting(string[] specs, List<string> urls)
+        public override Route GetRouting(string[] specs, List<string> urls, string semantic)
         {
             return null;
         }
@@ -92,21 +92,21 @@ namespace Slave
         /// specs[0] = type of routing operator
         /// specs[1] = field_id
         /// </param>
-        /// <param name="replica">
-        /// replica = List of CommonTypes.Replica filled with the downstream replicas
+        /// <param name="urls">
+        /// urls = downstream replicas urls
         /// </param>
         /// <returns></returns>
-        public override Route GetRouting(string[] specs, List<string> urls)
+        public override Route GetRouting(string[] specs, List<string> urls, string semantic)
         {
             string operatorType = specs[0];
             if (operatorType.ToLower().Equals("primary"))
-                return new Primary(urls);
+                return new Primary(urls, semantic);
             if (operatorType.ToLower().Equals("random"))
-                return new Random(urls);
+                return new Random(urls, semantic);
             if (operatorType.ToLower().Equals("hashing"))
-                return new Hashing(urls, specs[1]);
+                return new Hashing(urls, specs[1], semantic);
             if (operatorType.ToLower().Equals("output"))
-                return new Output();
+                return new Output(null);
             return null;
         }
     }
