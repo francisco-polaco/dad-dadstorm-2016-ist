@@ -24,7 +24,7 @@ namespace PuppetMaster
         private volatile uint _isItRunning = 0; // 1 full speed , 2 step by step
         private volatile bool _wereOperatorsCreated = false;
         private bool _isLogFull = false;
-        private string _sematic;
+        private string _sematic = "";
 
         private Dictionary<int, ConnectionPack> _whatShouldISentToOperators 
             = new Dictionary<int, ConnectionPack>();
@@ -163,6 +163,7 @@ namespace PuppetMaster
 
                 string myLogUrl = "tcp://" + ip + ":" + PuppetMaster.Port + "/" + PuppetMaster.RemoteName;
                 PuppetMaster.GetInstance().Log("IP Sent for PCS: " + myLogUrl);
+                if (_sematic.Equals(String.Empty)) _sematic = "at-most-once";
                 ConnectionPack thingsToSend = new ConnectionPack(cmd, _isLogFull, listUrls, myLogUrl, _sematic);
                 _whatShouldISentToOperators.Add(opId, thingsToSend);
 
