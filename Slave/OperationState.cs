@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
+using System.Threading;
 using CommonTypes;
 
 namespace Slave
@@ -64,6 +65,7 @@ namespace Slave
         // Responsible to process and route the tuples
         private void ProcessRoutePack(TuplePack input)
         {
+            SleepInterval(SlaveObj.IntervalValue);
             Console.WriteLine("Attempting to process tuple: " + MergeOutput(input.Content));
             IList<TuplePack> tuplesList = SlaveObj.ProcessObj.Process(input);
 
@@ -113,6 +115,12 @@ namespace Slave
                 output += i == (content.Count - 1) ? content[i] : content[i] + ", ";
             }
             return output;
+        }
+
+        private void SleepInterval(int ms)
+        {
+            if (SlaveObj.IntervalValue != 0)
+                Thread.Sleep(SlaveObj.IntervalValue);
         }
 
     }

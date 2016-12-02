@@ -51,6 +51,7 @@ namespace Slave
         private string _puppetMasterUrl;
         bool _isLogFull;
         Queue<TuplePack> _jobQueue;
+        private int _interval = 0;
 
 
         public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel)
@@ -67,6 +68,12 @@ namespace Slave
         }
 
         // getters, setters
+
+        public int IntervalValue
+        {
+            get { return _interval; }
+            set { _interval = value; }
+        }
 
         public int SeqNumber
         {
@@ -165,8 +172,8 @@ namespace Slave
         // sleep ms milliseconds
         public void Interval(int ms)
         {
-            Console.WriteLine("Slave with url " + _url + " going to sleep!");
-            Thread.Sleep(ms);
+            Console.WriteLine("Slave with url " + _url + " applying " + ms + "interval to operations!");
+            _interval = ms;
         }
 
         // print status to console
