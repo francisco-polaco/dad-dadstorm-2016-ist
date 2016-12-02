@@ -66,12 +66,14 @@ namespace CommonTypes
         public override bool Equals(object obj)
         {
             TuplePack o = (TuplePack) obj;
+            if (!(o.Content != null && o.OpUrl != null))
+                return false;
             for (int i = 0; i < Content.Count; i++)
             {
                 if (Content[i] != o.Content[i])
                     return false;
             }
-            return true;
+            return OpUrl.Equals(o.OpUrl) && SeqNumber == o.SeqNumber;
         }
     }
 
