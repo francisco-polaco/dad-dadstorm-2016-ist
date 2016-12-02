@@ -60,7 +60,7 @@ namespace PuppetMaster
                     line.StartsWith("\n") || line.StartsWith("\r\n") || 
                     line.Equals(""))
                     continue; // comments or empty lines
-                if (line.StartsWith(" ")) // case where string has spaces in the start
+                if (line.StartsWith(" ") || line.StartsWith("\t")) // case where string has spaces in the start
                 {
                     MessageBox.Show("The file has a line that starts with a space. It will cause problems. Line " + lineNo);
                 }
