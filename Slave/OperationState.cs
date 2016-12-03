@@ -67,6 +67,15 @@ namespace Slave
         {
             SleepInterval(SlaveObj.IntervalValue);
             Console.WriteLine("Attempting to process tuple: " + MergeOutput(input.Content));
+
+            lock (SlaveObj.SeenTuplePacks) { 
+                if (SlaveObj.Semantic.Equals("exactly-once") && SlaveObj.SeenTuplePacks.Contains(input))
+                {
+                    Console.WriteLine("Already seen the tuple: " + input.ToString());
+                    return;
+                }
+            }
+
             IList<TuplePack> tuplesList = SlaveObj.ProcessObj.Process(input);
 
             string processedTuples = string.Empty;
@@ -77,8 +86,17 @@ namespace Slave
                     tuplepack.OpUrl = SlaveObj.Url;
                     tuplepack.SeqNumber = SlaveObj.SeqNumber;
                     SlaveObj.SeqNumber++;
+                    
                     // Route
                     SlaveObj.RouteObj.Route(tuplepack);
+
+                    // Seen the tuple
+                    if (SlaveObj.Semantic.Equals("exactly-once")) {
+                        lock (SlaveObj.SeenTuplePacks) { 
+                            SlaveObj.SeenTuplePacks.Add(input);
+                        }
+                    }
+
                     ReplicaUpdate(SlaveObj.Url, tuplepack.Content);
                     // Debug purposes
                     processedTuples += tuplepack.Content.Count == 1 ? tuplepack.Content[0] + " " : MergeOutput(tuplepack.Content) + " ";

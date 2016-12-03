@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Remoting;
 using System.Runtime.Serialization;
 
@@ -66,14 +67,24 @@ namespace CommonTypes
         public override bool Equals(object obj)
         {
             TuplePack o = (TuplePack) obj;
-            if (!(o.Content != null && o.OpUrl != null))
+            if (Content.Count != o.Content.Count)
                 return false;
             for (int i = 0; i < Content.Count; i++)
             {
                 if (Content[i] != o.Content[i])
                     return false;
             }
-            return OpUrl.Equals(o.OpUrl) && SeqNumber == o.SeqNumber;
+            return SeqNumber == o.SeqNumber;
+        }
+
+        public override string ToString()
+        {
+            string content = string.Empty;
+            foreach (var tuple in Content)
+            {
+                content += tuple + " ";
+            }
+            return "OpUrl: " + _opUrl + " seq: " + _seqNumber + " content: " + content;
         }
     }
 

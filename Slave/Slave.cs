@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using CommonTypes;
@@ -6,8 +7,6 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading;
-
 
 namespace Slave
 {
@@ -21,8 +20,9 @@ namespace Slave
             string url = (string)DeserializeObject(args[3]);
             string puppetMasterUrl = (string)DeserializeObject(args[4]);
             bool logLevel = (bool)DeserializeObject(args[5]);
-            
-            var slave = new Slave(import,route,process,url,puppetMasterUrl,logLevel);
+            string semantic = (string) DeserializeObject(args[6]);
+
+            var slave = new Slave(import,route,process,url,puppetMasterUrl,logLevel,semantic);
 
             Console.Title = url;
             Console.ReadLine();
@@ -50,24 +50,31 @@ namespace Slave
         private ILogUpdate _puppetLogProxy;
         private string _puppetMasterUrl;
         bool _isLogFull;
-        Queue<TuplePack> _jobQueue;
+        ConcurrentQueue<TuplePack> _jobQueue;
         private int _interval = 0;
+        private IList<TuplePack> _seenTuplePacks;
+        private string _semantic;
 
-
-        public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel)
+        public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel, string semantic)
         {
-            this._importObj = importObj;
-            this._routeObj = routeObj;
-            this._processObj = processObj;
-            this._url = url;
-            this._puppetMasterUrl = puppetMasterUrl;
-            this._isLogFull = logLevel;
+            _importObj = importObj;
+            _routeObj = routeObj;
+            _processObj = processObj;
+            _url = url;
+            _puppetMasterUrl = puppetMasterUrl;
+            _isLogFull = logLevel;
             _state = new FrozenState(this);
-            _jobQueue = new Queue<TuplePack>();
+            _jobQueue = new ConcurrentQueue<TuplePack>();
+            _seenTuplePacks = new List<TuplePack>();
+            _semantic = semantic;
             init();
         }
 
         // getters, setters
+
+        public string Semantic => _semantic;
+
+        public IList<TuplePack> SeenTuplePacks => _seenTuplePacks;
 
         public int IntervalValue
         {
@@ -81,7 +88,7 @@ namespace Slave
             set { _seqNumber = value; }
         }
 
-        public Queue<TuplePack> JobQueue => _jobQueue;
+        public ConcurrentQueue<TuplePack> JobQueue => _jobQueue;
 
         public string Url
         {
@@ -172,7 +179,7 @@ namespace Slave
         // sleep ms milliseconds
         public void Interval(int ms)
         {
-            Console.WriteLine("Slave with url " + _url + " applying " + ms + "interval to operations!");
+            Console.WriteLine("Slave with url " + _url + " applying " + ms + " interval to operations!");
             _interval = ms;
         }
 
@@ -240,12 +247,18 @@ namespace Slave
             _jobQueue.Enqueue(tuple);
         }
 
-        /// auxiliary: get job from jobQueue
-        /// 
-        /// <exception cref="InvalidOperationException">Thrown if Queue is empty.</exception>
+        /// <summary>
+        /// It should be used only after testing if the queue is empty!
+        /// If the previous condition doens't verify - null to safeguard.
+        /// </summary>
+        /// <returns></returns>
         public TuplePack GetJob()
         {
-            return _jobQueue.Dequeue();
+            if (_jobQueue.Count == 0)
+                return null;
+            TuplePack job;
+            while (!_jobQueue.TryDequeue(out job)){}
+            return job;
         }
     }
 }

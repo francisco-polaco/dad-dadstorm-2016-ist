@@ -16,21 +16,6 @@ namespace Slave
     [Serializable]
     public abstract class RouteParent : Route
     {
-       /* public static void RemoteAsyncCallBack(IAsyncResult ar, TuplePack tp)
-        {
-            RemoteAsyncDelegate del = (RemoteAsyncDelegate)((AsyncResult)ar).AsyncDelegate;
-            Console.WriteLine(((TuplePack)del.Target).Content[0]);
-            try
-            {
-                del.EndInvoke(ar);
-                TuplePack tp = (TuplePack) del.Target;
-            }
-            catch (SocketException e)
-            {
-                
-            }
-        }*/
-
         private ConcurrentQueue<int> _invalidIndexes = new ConcurrentQueue<int>();
         private ConcurrentDictionary<string, IList<TuplePack>> _sentTuples = new ConcurrentDictionary<string, IList<TuplePack>>();
         private string _semantic;

@@ -127,7 +127,7 @@ namespace ProcessCreationService
 
                 System.Diagnostics.Process.Start(@"Slave.exe", SerializeObject(importObj) + " " + SerializeObject(routeObj) + " " +
                     SerializeObject(processObj) + " " + SerializeObject(url) + " " + SerializeObject(input.PuppetMasterUrl) + " " +
-                    SerializeObject(input.IsLogFull));
+                    SerializeObject(input.IsLogFull) + " " + SerializeObject(input.Semantic.ToLower()));
             }
         }
 
