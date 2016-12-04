@@ -7,7 +7,6 @@ namespace CommonTypes
 {
     public interface ILogUpdate
     {
-        //void Update(string log);
         void ReplicaUpdate(string replicaUrl, IList<string> tupleFields);
     }
 
@@ -30,6 +29,11 @@ namespace CommonTypes
     public interface IPcsSlaveLaunch
     {
         void Launch(ConnectionPack input);
+    }
+
+    public interface ISibling
+    {
+        IList<TuplePack> PollSibling();
     }
 
     [System.Serializable]
@@ -74,7 +78,7 @@ namespace CommonTypes
                 if (Content[i] != o.Content[i])
                     return false;
             }
-            return SeqNumber == o.SeqNumber;
+            return SeqNumber == o.SeqNumber && OpUrl == o.OpUrl;
         }
 
         public override string ToString()

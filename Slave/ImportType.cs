@@ -8,6 +8,7 @@ namespace Slave
     public class Input : Import
     {
         private string[] _inputs;
+        private bool _used = false;
 
         public Input(string[] inputs)
         {
@@ -16,7 +17,12 @@ namespace Slave
 
         public List<string> Import()
         {
-            return _inputs.ToList().Count == 0 ? null : _inputs.ToList();
+            // the inputs can only be used once
+            if (!_used) { 
+                _used = true;
+                return _inputs.ToList().Count == 0 ? null : _inputs.ToList();
+            }
+            return null;
         }
     }
 

@@ -17,7 +17,7 @@ namespace Slave
     public abstract class RouteParent : Route
     {
         private ConcurrentQueue<int> _invalidIndexes = new ConcurrentQueue<int>();
-        private ConcurrentDictionary<string, IList<TuplePack>> _sentTuples = new ConcurrentDictionary<string, IList<TuplePack>>();
+        //private ConcurrentDictionary<string, IList<TuplePack>> _sentTuples = new ConcurrentDictionary<string, IList<TuplePack>>();
         private string _semantic;
 
         protected RouteParent(string semantic)
@@ -87,7 +87,7 @@ namespace Slave
 
         private void CallNextReplica(int index, List<string> urls, TuplePack inputPack)
         {
-            _sentTuples.TryAdd(inputPack.OpUrl, new List<TuplePack>());
+            //_sentTuples.TryAdd(inputPack.OpUrl, new List<TuplePack>());
             RemoteAsyncDelegate remoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[index].Dispatch);
             if (_semantic.Equals("at-most-once"))
                 remoteDel.BeginInvoke(inputPack, null, null);
@@ -99,7 +99,7 @@ namespace Slave
                         try
                         {
                             remoteDel.EndInvoke(ar);
-                            _sentTuples[inputPack.OpUrl].Add(inputPack);
+                            //_sentTuples[inputPack.OpUrl].Add(inputPack);
                         }
                         catch(SocketException e) {
                             TryAgain(inputPack, index, urls);
@@ -111,11 +111,12 @@ namespace Slave
 
         private void TryAgain(TuplePack inputPack, int index, List<string> urls)
         {
-            if (_semantic.Equals("exactly-once"))
+            /*if (_semantic.Equals("exactly-once"))
             {
                 if (_sentTuples[inputPack.OpUrl].Contains(inputPack))
                     return;
-            }
+            }*/
+
             Console.WriteLine("Could not locate " + urls[index]);
             // try again dynamic reconfiguration
             if (!_invalidIndexes.Contains(index))

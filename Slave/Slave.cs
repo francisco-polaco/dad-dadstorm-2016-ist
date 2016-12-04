@@ -7,6 +7,7 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Security;
 
 namespace Slave
 {
@@ -21,8 +22,9 @@ namespace Slave
             string puppetMasterUrl = (string)DeserializeObject(args[4]);
             bool logLevel = (bool)DeserializeObject(args[5]);
             string semantic = (string) DeserializeObject(args[6]);
+            List<string> siblings = (List<string>) DeserializeObject(args[7]);
 
-            var slave = new Slave(import,route,process,url,puppetMasterUrl,logLevel,semantic);
+            var slave = new Slave(import,route,process,url,puppetMasterUrl,logLevel,semantic,siblings);
 
             Console.Title = url;
             Console.ReadLine();
@@ -39,8 +41,9 @@ namespace Slave
         }
     }
 
-    public class Slave : MarshalByRefObject, ISlave, IRemoteCmdInterface, ILogUpdate
+    public class Slave : MarshalByRefObject, ISlave, IRemoteCmdInterface, ILogUpdate, ISibling
     {
+        private bool _slept = false;
         private int _seqNumber = 0;
         private string _url;
         private Import _importObj;
@@ -54,8 +57,9 @@ namespace Slave
         private int _interval = 0;
         private IList<TuplePack> _seenTuplePacks;
         private string _semantic;
+        private List<string> _siblings;
 
-        public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel, string semantic)
+        public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel, string semantic, List<string> siblings)
         {
             _importObj = importObj;
             _routeObj = routeObj;
@@ -67,10 +71,23 @@ namespace Slave
             _jobQueue = new ConcurrentQueue<TuplePack>();
             _seenTuplePacks = new List<TuplePack>();
             _semantic = semantic;
+            _siblings = siblings;
             init();
         }
 
         // getters, setters
+
+        public bool Slept
+        {
+            get { return _slept; }
+            set { _slept = value; }
+        }
+
+        public List<string> Siblings
+        {
+            get { return _siblings; }
+            set { _siblings = value; }
+        }
 
         public string Semantic => _semantic;
 
@@ -88,7 +105,11 @@ namespace Slave
             set { _seqNumber = value; }
         }
 
-        public ConcurrentQueue<TuplePack> JobQueue => _jobQueue;
+        public ConcurrentQueue<TuplePack> JobQueue
+        {
+            get { return _jobQueue; }
+            set { _jobQueue = value; }
+        }
 
         public string Url
         {
@@ -153,7 +174,7 @@ namespace Slave
             Console.WriteLine("Slave with url " + _url + " is listening!");
 
             // init client to log puppetLogProxy
-           _puppetLogProxy = (ILogUpdate) Activator.GetObject(typeof(ILogUpdate), _puppetMasterUrl);
+            _puppetLogProxy = (ILogUpdate) Activator.GetObject(typeof(ILogUpdate), _puppetMasterUrl);
 
             if (_puppetLogProxy == null)
                 System.Console.WriteLine("Could not connect to PuppetMaster on " + _puppetMasterUrl);
@@ -199,6 +220,7 @@ namespace Slave
         // change state to frozen
         public void Freeze()
         {
+            _slept = true;
             _state = new FrozenState(this);
             Console.WriteLine("Slave with url " + _url + " is now fozen!");
         }
@@ -207,30 +229,13 @@ namespace Slave
         public void Unfreeze()
         {
             _state = new UnfrozenState(this);
-
-            Console.WriteLine("Slave with url " + _url + " is now unfozen!");
-            // dispatch all queued jobs
-            try
-            {
-                TuplePack tuple = null;
-                for(int i = 0; i < _jobQueue.Count; i++)
-                {
-                    tuple = GetJob();
-                    Console.WriteLine("Slave with url " + _url + " dispatching job #" + i + " in the queue!");
-                    _state.Dispatch(tuple);
-                }  
-            }
-            catch (InvalidOperationException ex)
-            {
-                System.Console.WriteLine("jobQueue empty!");
-            }
+            _state.Dispatch(null);
         }
 
         // exit gracefully
         public void Exit()
         {
             Unfreeze(); // even if the current state is unfrozen, it unfrozes again to dispatch queued jobs
-
             System.Console.WriteLine("Slave " + _url + " exiting...");
             Environment.Exit(1);
         }
@@ -259,6 +264,11 @@ namespace Slave
             TuplePack job;
             while (!_jobQueue.TryDequeue(out job)){}
             return job;
+        }
+
+        public IList<TuplePack> PollSibling()
+        {
+            return State.PollSibling();
         }
     }
 }

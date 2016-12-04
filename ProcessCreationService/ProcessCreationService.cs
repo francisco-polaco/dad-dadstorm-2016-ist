@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using CommonTypes;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
@@ -127,7 +128,8 @@ namespace ProcessCreationService
 
                 System.Diagnostics.Process.Start(@"Slave.exe", SerializeObject(importObj) + " " + SerializeObject(routeObj) + " " +
                     SerializeObject(processObj) + " " + SerializeObject(url) + " " + SerializeObject(input.PuppetMasterUrl) + " " +
-                    SerializeObject(input.IsLogFull) + " " + SerializeObject(input.Semantic.ToLower()));
+                    SerializeObject(input.IsLogFull) + " " + SerializeObject(input.Semantic.ToLower()) + " " + 
+                    SerializeObject(getSiblings(plainUrls,url)));
             }
         }
 
@@ -207,6 +209,19 @@ namespace ProcessCreationService
                 file.Close();
             }
             return tuples;
+        }
+
+        private List<string> getSiblings(string[] opReplicasUrls, string myself)
+        {
+            List<string> output = new List<string>();
+            foreach (string url in opReplicasUrls)
+            {
+                if(url.Equals(myself))
+                    continue;
+                // the url of ISibling finishes op + s
+                output.Add(url);
+            }
+            return output;
         }
     }
 }
