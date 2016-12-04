@@ -86,7 +86,7 @@ namespace CommonTypes
             string content = string.Empty;
             foreach (var tuple in Content)
             {
-                content += tuple + " ";
+                content += tuple + ", ";
             }
             return "OpUrl: " + _opUrl + " seq: " + _seqNumber + " content: " + content;
         }

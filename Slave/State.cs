@@ -21,9 +21,6 @@ namespace Slave
 
         protected IList<ISibling> Init(List<string> siblingsUrls)
         {
-            if (_siblings != null)
-                return _siblings;
-
             _siblings = new List<ISibling>();
             foreach (var url in _slaveObj.Siblings)
             {
@@ -34,8 +31,7 @@ namespace Slave
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Exception encountered getting siblings " + e.GetBaseException());
-                    _siblings = null;
+                    Console.WriteLine("Exception encountered getting siblings " + url);
                 }
             }
             return _siblings;
