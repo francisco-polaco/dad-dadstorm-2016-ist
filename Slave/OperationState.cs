@@ -19,10 +19,10 @@ namespace Slave
 
         public override void Dispatch(TuplePack input)
         {
-            SlaveObj.Slept = true;
             // put job in queue
             SlaveObj.AddJob(input);
-            throw new SocketException();
+            // behave likea slow network/operator
+            Thread.Sleep(6000);
         }
 
         public override void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
@@ -41,30 +41,7 @@ namespace Slave
 
         public override void Dispatch(TuplePack input)
         {
-            // If I "slept" I need to poll my sibilings for the last tuples processed
-            if (SlaveObj.Slept && SlaveObj.Semantic.Equals("exactly-once"))
-            {
-                List<IList<TuplePack>> polledTuples = new List<IList<TuplePack>>();
-                // init the proxies to the siblings
-                IList<ISibling> siblings = Init(SlaveObj.Siblings);
-                foreach (ISibling sibling in siblings)
-                {
-                    polledTuples.Add(sibling.PollSibling());
-                }
-                ConcurrentQueue<TuplePack> validTuples = new ConcurrentQueue<TuplePack>();
-                foreach (IList<TuplePack> tuplesList in polledTuples)
-                {
-                    foreach (TuplePack tuple in tuplesList)
-                    {
-                        if(!SlaveObj.JobQueue.Contains(tuple))
-                            validTuples.Enqueue(tuple);
-                        Console.WriteLine("My brother already processed " + tuple.ToString());
-                    }
-                }
-                SlaveObj.JobQueue = validTuples;
-                SlaveObj.Slept = false;
-            }
-
+           
             // start command was issued || unfreeze happened
             if (input == null) 
             {
@@ -100,6 +77,25 @@ namespace Slave
             SleepInterval(SlaveObj.IntervalValue);
             Console.WriteLine("Attempting to process tuple: " + MergeOutput(input.Content));
 
+            // Check if the tuple was already seen
+            if (SlaveObj.Semantic.Equals("exactly-once"))
+            {
+                Console.WriteLine("Deciding with my siblings...");
+                // while loop:
+                //  break conditions:
+                //    -> if one of the decisions is true, its sign that the tuple has already been processed.
+                //    -> if all the decisions are false and the number of them it's equal to the siblings number - then you can assume that none processed. 
+                // so try again until you can match the break conditions. 
+                while (true)
+                {
+                    Thread.Sleep(2000);
+                    List<bool> decisions = MayIProcess(input);
+                    // Can't know for sure if the input has been processed, since a sibling didn't respond
+                    if (decisions.Count == Siblings.Count || AlreadySeen(decisions))
+                        break;
+                }
+            }
+
             IList<TuplePack> tuplesList = SlaveObj.ProcessObj.Process(input);
 
             if (tuplesList != null)
@@ -114,11 +110,10 @@ namespace Slave
                     // Route
                     SlaveObj.RouteObj.Route(tuplepack);
 
-                    // Seen the tuple
+                    // If I processed I have seen it
                     if (SlaveObj.Semantic.Equals("exactly-once")) {
-                        lock (SlaveObj.SeenTuplePacks) { 
-                            SlaveObj.SeenTuplePacks.Add(input);
-                        }
+                        SlaveObj.SeenTuplePacks.Add(input);
+                        DestributeTuple(input);
                     }
 
                     ReplicaUpdate(SlaveObj.Url, tuplepack.Content);
@@ -133,6 +128,21 @@ namespace Slave
         public override void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
         {
             SlaveObj.PuppetLogProxy.ReplicaUpdate(replicaUrl, tupleFields);
+        }
+
+        public void DestributeTuple(TuplePack toAnnounce)
+        {
+            // assures that we don't stay in while loop so often
+            foreach (string siblingUrl in SlaveObj.Siblings)
+            {
+                try
+                {
+                    var replica = (ISibling) Activator.GetObject(typeof(ISibling), siblingUrl);
+                    replica.AnnounceTuple(toAnnounce);
+                }
+                //Don't do nothing, we are optimists
+                catch (SocketException e) {}
+            }
         }
 
         // Split tuple in fields
@@ -164,5 +174,32 @@ namespace Slave
             if (SlaveObj.IntervalValue != 0)
                 Thread.Sleep(SlaveObj.IntervalValue);
         }
+
+        private List<bool> MayIProcess(TuplePack input)
+        {
+            List<bool> decisions = new List<bool>();
+            // Query my brothers
+            foreach (string siblingUrl in SlaveObj.Siblings)
+            {
+                try
+                {
+                    var replica = (ISibling)Activator.GetObject(typeof(ISibling), siblingUrl);
+                    Siblings.Add(replica);
+                    decisions.Add(replica.PollTuple(input));
+                }
+                catch (SocketException e)
+                {
+                    // Sibling has crashed don't consider it
+                    SlaveObj.Siblings.Remove(siblingUrl);
+                }
+            }
+            return decisions;
+        }
+
+        private bool AlreadySeen(List<bool> decisions)
+        {
+            return decisions.Contains(true);
+        }
+
     }
 }

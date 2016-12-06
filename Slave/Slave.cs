@@ -43,7 +43,6 @@ namespace Slave
 
     public class Slave : MarshalByRefObject, ISlave, IRemoteCmdInterface, ILogUpdate, ISibling
     {
-        private bool _slept = false;
         private int _seqNumber = 0;
         private string _url;
         private Import _importObj;
@@ -76,12 +75,6 @@ namespace Slave
         }
 
         // getters, setters
-
-        public bool Slept
-        {
-            get { return _slept; }
-            set { _slept = value; }
-        }
 
         public List<string> Siblings
         {
@@ -184,7 +177,13 @@ namespace Slave
         public void Dispatch(TuplePack input)
         {
             Console.WriteLine("Dispatch method called...");
-            _state.Dispatch(input);
+            if (_semantic.Equals("exactly-once")) { 
+                lock (this) {
+                    _state.Dispatch(input);
+                }
+            }
+            else 
+                _state.Dispatch(input);
         }
 
         // puppet master commands
@@ -220,7 +219,6 @@ namespace Slave
         // change state to frozen
         public void Freeze()
         {
-            _slept = true;
             _state = new FrozenState(this);
             Console.WriteLine("Slave with url " + _url + " is now fozen!");
         }
@@ -266,9 +264,14 @@ namespace Slave
             return job;
         }
 
-        public IList<TuplePack> PollSibling()
+        public bool PollTuple(TuplePack toRoute)
         {
-            return State.PollSibling();
+            return State.PollTuple(toRoute);
+        }
+
+        public void AnnounceTuple(TuplePack toAnnounce)
+        {
+            State.AnnounceTuple(toAnnounce);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.Remoting;
 using System.Runtime.Serialization;
+using System.Timers;
 
 namespace CommonTypes
 {
@@ -33,7 +34,9 @@ namespace CommonTypes
 
     public interface ISibling
     {
-        IList<TuplePack> PollSibling();
+        bool PollTuple(TuplePack toRoute);
+        void AnnounceTuple(TuplePack toAnnounce);
+
     }
 
     [System.Serializable]
@@ -218,7 +221,24 @@ namespace CommonTypes
             }
             return res;
         }
-
-
     }
+
+    public class TimerTask
+    {
+        private System.Timers.Timer _timer;
+
+        public TimerTask(int interval, bool repeat, EventHandler handler)
+        {
+            _timer = new Timer();
+            _timer.Elapsed += new ElapsedEventHandler(handler);
+            _timer.AutoReset = repeat;
+            _timer.Interval = interval;
+            _timer.Enabled = true;
+        }
+        
+        public void StopTimer() { _timer.Stop(); }
+        
+        public void StartTimer() { _timer.Start(); }
+    }
+
 }

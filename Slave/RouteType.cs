@@ -17,7 +17,6 @@ namespace Slave
     public abstract class RouteParent : Route
     {
         private ConcurrentQueue<int> _invalidIndexes = new ConcurrentQueue<int>();
-        //private ConcurrentDictionary<string, IList<TuplePack>> _sentTuples = new ConcurrentDictionary<string, IList<TuplePack>>();
         private string _semantic;
 
         protected RouteParent(string semantic)
@@ -87,11 +86,20 @@ namespace Slave
 
         private void CallNextReplica(int index, List<string> urls, TuplePack inputPack)
         {
-            //_sentTuples.TryAdd(inputPack.OpUrl, new List<TuplePack>());
             RemoteAsyncDelegate remoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[index].Dispatch);
             if (_semantic.Equals("at-most-once"))
                 remoteDel.BeginInvoke(inputPack, null, null);
-            else { 
+            if (_semantic.Equals("at-most-once"))
+            {
+                remoteDel.BeginInvoke(
+                    inputPack,
+                    (IAsyncResult ar) =>
+                    {
+                        TimerTask tt = new TimerTask(3000,false,TimeoutHandler);
+                    },
+                    null);
+            }
+            if(_semantic.Equals("exactly-once")) { 
                 remoteDel.BeginInvoke(
                     inputPack,
                     (IAsyncResult ar) =>
@@ -99,24 +107,22 @@ namespace Slave
                         try
                         {
                             remoteDel.EndInvoke(ar);
-                            //_sentTuples[inputPack.OpUrl].Add(inputPack);
                         }
-                        catch(SocketException e) {
+                        catch (SocketException e)
+                        {
                             TryAgain(inputPack, index, urls);
                         }
                     },
                     null);
             }
+            else
+            {
+                Console.WriteLine("I don't support such semantic!");
+            }
         }
 
         private void TryAgain(TuplePack inputPack, int index, List<string> urls)
         {
-            /*if (_semantic.Equals("exactly-once"))
-            {
-                if (_sentTuples[inputPack.OpUrl].Contains(inputPack))
-                    return;
-            }*/
-
             Console.WriteLine("Could not locate " + urls[index]);
             // try again dynamic reconfiguration
             if (!_invalidIndexes.Contains(index))
@@ -138,31 +144,17 @@ namespace Slave
 
         protected void SendTuplePack(int index, List<string> urls, TuplePack inputPack)
         {
-            /*try
-            {*/
-                CallNextReplica(index, urls, inputPack);
-            /*}
-            catch (SocketException)
-            {
-                Console.WriteLine("Could not locate " + urls[index]);
-                // try again dynamic reconfiguration
-                _invalidIndexes.Add(index);
-                if (_invalidIndexes.Count == urls.Count)
-                    return;
-                for (int i = 0; i < urls.Count; i++)
-                {
-                    if (!_invalidIndexes.Contains(i)) {
-                        SendTuplePack(i, urls, inputPack);
-                        return;
-                    }
-                }   
-                Console.WriteLine("All downstream replicas are down!");
-            }*/
+            CallNextReplica(index, urls, inputPack);
         }
 
         protected void WriteTuplePack(IList<string> content)
         {
             WriteToFile(MergeOutput(content));
+        }
+
+        private void TimeoutHandler(object sender, EventArgs eventArgs)
+        {
+            
         }
     }
 

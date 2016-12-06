@@ -19,31 +19,19 @@ namespace Slave
             _slaveObj = slave;    
         }
 
-        protected IList<ISibling> Init(List<string> siblingsUrls)
-        {
-            _siblings = new List<ISibling>();
-            foreach (var url in _slaveObj.Siblings)
-            {
-                try
-                {
-                    var replica = (ISibling) Activator.GetObject(typeof(ISibling), url);
-                    _siblings.Add(replica);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Exception encountered getting siblings " + url);
-                }
-            }
-            return _siblings;
-        }
-
         public abstract void Dispatch(TuplePack input);
 
         public abstract void ReplicaUpdate(string replicaUrl, IList<string> tupleFields);
 
-        public IList<TuplePack> PollSibling()
+        public bool PollTuple(TuplePack toRoute)
         {
-            return SlaveObj.SeenTuplePacks;
+            return SlaveObj.SeenTuplePacks.Contains(toRoute);
+        }
+
+        public void AnnounceTuple(TuplePack toAnnounce)
+        {
+            if(!SlaveObj.SeenTuplePacks.Contains(toAnnounce))
+                SlaveObj.SeenTuplePacks.Add(toAnnounce);   
         }
     }
 }
