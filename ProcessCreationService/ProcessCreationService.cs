@@ -39,6 +39,7 @@ namespace ProcessCreationService
 
         public void Launch(ConnectionPack input)
         {
+            bool _stateful = false;
             bool firstOP = false;
             string cmd = input.Cmd;
             List<string> urls = input.ListUrls; 
@@ -113,6 +114,9 @@ namespace ProcessCreationService
             string processingPattern = @",|\s";
             string[] processingTokens = Regex.Split(tokens[5], processingPattern).Where(s => s != String.Empty).ToArray<string>();
 
+            // if it's a count operator or a uniq - it needs state - for exactly-once
+            _stateful = Stateful(processingTokens[0]);
+
             processObj = processingFactory.GetProcessing(processingTokens);
 
  
@@ -129,8 +133,15 @@ namespace ProcessCreationService
                 System.Diagnostics.Process.Start(@"Slave.exe", SerializeObject(importObj) + " " + SerializeObject(routeObj) + " " +
                     SerializeObject(processObj) + " " + SerializeObject(url) + " " + SerializeObject(input.PuppetMasterUrl) + " " +
                     SerializeObject(input.IsLogFull) + " " + SerializeObject(input.Semantic.ToLower()) + " " + 
-                    SerializeObject(getSiblings(plainUrls,url)));
+                    SerializeObject(getSiblings(plainUrls,url)) + " " + SerializeObject(_stateful));
             }
+        }
+
+        private bool Stateful(string processingToken)
+        {
+            if (processingToken.ToLower().Equals("uniq") || processingToken.ToLower().Equals("count"))
+                return true;
+            return false;
         }
 
         private string SerializeObject(object o)

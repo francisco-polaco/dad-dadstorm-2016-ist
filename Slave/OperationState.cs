@@ -129,7 +129,18 @@ namespace Slave
                     // If I processed I have seen it
                     if (SlaveObj.Semantic.Equals("exactly-once")) {
                         SlaveObj.SeenTuplePacks.Add(input);
-                        DestributeTuple(input);
+                        List<string> sucesffulySent = DestributeTuple(input, SlaveObj.Siblings);
+                        // if I need to mantain the state I need to assure that all of my siblings get the tuple
+                        if (SlaveObj.Stateful)
+                        {
+                            // avoid resind to the siblings that already received
+                            int difference = SlaveObj.Siblings.Count - sucesffulySent.Count;
+                            while (difference != 0)
+                            {
+                                sucesffulySent = DestributeTuple(input, sucesffulySent);
+                                difference = difference - sucesffulySent.Count;
+                            }
+                        }
                     }
 
                     ReplicaUpdate(SlaveObj.Url, tuplepack.Content);
@@ -151,19 +162,30 @@ namespace Slave
             return SlaveObj.SeenTuplePacks.Contains(toRoute);
         }
 
-        public void DestributeTuple(TuplePack toAnnounce)
+        public List<string> DestributeTuple(TuplePack toAnnounce, List<string> siblingsUrls)
         {
             // assures that we don't stay in while loop so often
-            foreach (string siblingUrl in SlaveObj.Siblings)
+            // and in the case of need to matain state we get the tuple asap!
+            List<string> sucessfullySent = new List<string>();
+            foreach (string siblingUrl in siblingsUrls)
             {
                 try
                 {
                     var replica = (ISibling) Activator.GetObject(typeof(ISibling), siblingUrl);
                     replica.AnnounceTuple(toAnnounce);
+                    sucessfullySent.Add(siblingUrl);
                 }
-                //Don't do nothing, we are optimists
-                catch (SocketException e) {}
+                // crashed - theres nothing we can do
+                catch (SocketException e)
+                {
+                    sucessfullySent.Add(siblingUrl);
+                }
+                // maybe slowed - we need to assure that it gets there
+                catch (SlowException e)
+                {
+                }
             }
+            return sucessfullySent;
         }
 
         // Split tuple in fields

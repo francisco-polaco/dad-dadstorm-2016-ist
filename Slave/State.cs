@@ -27,8 +27,12 @@ namespace Slave
       
         public void AnnounceTuple(TuplePack toAnnounce)
         {
-            if(!SlaveObj.SeenTuplePacks.Contains(toAnnounce))
-                SlaveObj.SeenTuplePacks.Add(toAnnounce);   
+            if (!SlaveObj.SeenTuplePacks.Contains(toAnnounce)) {
+                SlaveObj.SeenTuplePacks.Add(toAnnounce);
+                // if I belong to a operator that needs to mantain state I need to process
+                if (SlaveObj.Stateful)
+                    SlaveObj.ProcessObj.Process(toAnnounce);
+            }
         }
     }
 }

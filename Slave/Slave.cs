@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CommonTypes;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
@@ -24,8 +25,9 @@ namespace Slave
             bool logLevel = (bool)DeserializeObject(args[5]);
             string semantic = (string) DeserializeObject(args[6]);
             List<string> siblings = (List<string>) DeserializeObject(args[7]);
+            bool stateful = (bool) DeserializeObject(args[8]);
 
-            var slave = new Slave(import,route,process,url,puppetMasterUrl,logLevel,semantic,siblings);
+            var slave = new Slave(import,route,process,url,puppetMasterUrl,logLevel,semantic,siblings,stateful);
 
             Console.Title = url;
             Console.ReadLine();
@@ -44,6 +46,7 @@ namespace Slave
 
     public class Slave : MarshalByRefObject, ISlave, IRemoteCmdInterface, ILogUpdate, ISibling
     {
+        private bool _stateful;
         private System.Random _rnd;
         private int _seqNumber = 0;
         private string _url;
@@ -60,7 +63,7 @@ namespace Slave
         private string _semantic;
         private List<string> _siblings;
 
-        public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel, string semantic, List<string> siblings)
+        public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel, string semantic, List<string> siblings, bool stateful)
         {
             _importObj = importObj;
             _routeObj = routeObj;
@@ -73,11 +76,18 @@ namespace Slave
             _seenTuplePacks = new List<TuplePack>();
             _semantic = semantic;
             _siblings = siblings;
+            _stateful = stateful;
             _rnd = new System.Random();
             init();
         }
 
         // getters, setters
+
+        public bool Stateful
+        {
+            get { return _stateful; }
+            set { _stateful = value; }
+        }
 
         public System.Random RandSeed => _rnd;
 
@@ -245,6 +255,8 @@ namespace Slave
         /// auxiliary: add job to jobQueue
         public void AddJob(TuplePack tuple)
         {
+            if(_jobQueue.Contains(tuple))
+                return;
             _jobQueue.Enqueue(tuple);
         }
 
