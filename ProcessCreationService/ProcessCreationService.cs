@@ -210,7 +210,8 @@ namespace ProcessCreationService
             System.IO.StreamReader file;
             foreach (string path in filePaths)
             {
-                file = new System.IO.StreamReader(Environment.CurrentDirectory + @"\..\..\..\Inputs\" + path);
+                if(path.Contains(":")) file = new System.IO.StreamReader(@path); //probably absolute path
+                else file = new System.IO.StreamReader(Environment.CurrentDirectory + @"\..\..\..\Inputs\" + path);
                 while ((tuple = file.ReadLine()) != null)
                 {
                     if (tuple.StartsWith("%%"))
