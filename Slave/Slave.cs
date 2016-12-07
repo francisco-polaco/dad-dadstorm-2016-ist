@@ -236,17 +236,6 @@ namespace Slave
             _state.Dispatch(null);
         }
 
-        // exit gracefully
-        public void Exit()
-        {
-            Unfreeze(); // even if the current state is unfrozen, it unfrozes again to dispatch queued jobs
-            System.Console.WriteLine("Slave " + _url + " exiting...");
-            Environment.Exit(Environment.ExitCode);
-
-
-            //Environment.Exit(1);
-        }
-
         // log to Puppet Master (or not!)
         public void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
         {

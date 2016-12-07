@@ -21,7 +21,6 @@ namespace CommonTypes
         void Crash();
         void Freeze();
         void Unfreeze();
-        void Exit();
     }
 
     public interface ISlave

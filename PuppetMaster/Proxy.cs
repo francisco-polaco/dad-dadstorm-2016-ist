@@ -65,7 +65,7 @@ namespace PuppetMaster
         {
             foreach (SlaveProxy sp in _slaveProxyList)
             {
-                sp.Exit();
+                sp.Crash();
             }
         }
     }
@@ -164,7 +164,7 @@ namespace PuppetMaster
             IRemoteCmdInterface remoteObj = (IRemoteCmdInterface)Activator.GetObject(
                 typeof(IRemoteCmdInterface),
                 _url);
-            remoteObj.Exit();
+            remoteObj.Crash();
         }
 
         public void OnRemoteCallback(IAsyncResult ar)

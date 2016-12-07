@@ -42,6 +42,8 @@ namespace mylib
 
         public IList<IList<string>> getFollowers(IList<string> inputTuple)
         {
+            inputTuple[0] = inputTuple[1];
+
             IList<IList<string>> outputTuples = new List<IList<string>>();
             List<string> tuple;
 

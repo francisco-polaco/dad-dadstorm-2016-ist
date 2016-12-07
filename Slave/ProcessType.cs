@@ -101,17 +101,6 @@ namespace Slave
 
         public IList<TuplePack> Process(TuplePack input)
         {
-            // Since the dlls functions are not adapted to search for what they need
-            IList<string> customInput = new List<string>();
-            if (_method.Equals("getFollowers"))
-            {
-                foreach (var str in input.Content)
-                {
-                    if (str.StartsWith("user"))
-                        customInput.Add(str);
-                }
-            }
-
             object output = null;
             try
             {
@@ -126,7 +115,7 @@ namespace Slave
                     BindingFlags.Public |
                     BindingFlags.Instance |
                     BindingFlags.InvokeMethod,
-                    null, instance, new object[] {customInput});
+                    null, instance, new object[] {input.Content});
             }
             catch (Exception e)
             {

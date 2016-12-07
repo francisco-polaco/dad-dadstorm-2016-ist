@@ -83,7 +83,12 @@ namespace PuppetMaster
             {
                 ExecuteLine(cmd);
                 _lineIndex++;
-                form.Invoke(toIncrementProgBar, _lineIndex);
+                // because when you exit you crash everything
+                try
+                {
+                    form.Invoke(toIncrementProgBar, _lineIndex);
+                }
+                catch(Exception e) { }
 
             }
             PuppetMaster.GetInstance().Log("===== Configuration file loading complete =====");

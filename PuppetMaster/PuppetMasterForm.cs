@@ -20,11 +20,6 @@ namespace PuppetMaster
             InitializeComponent();
         }
 
-        private void PuppetMasterForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            if(_puppetMaster != null) _puppetMaster.Exit();
-        }
-
         private void button_browse_Click(object sender, EventArgs e)
         {
             openConfig.ShowDialog();
@@ -146,6 +141,11 @@ namespace PuppetMaster
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void PuppetMasterForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (_puppetMaster != null) _puppetMaster.Exit();
         }
     }
 }

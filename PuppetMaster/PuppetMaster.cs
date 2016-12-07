@@ -190,11 +190,14 @@ namespace PuppetMaster
             System.Threading.Thread.Sleep(ms);
         }
 
-        internal void Exit()
+        public void Exit()
         {
             foreach (KeyValuePair<int, Operator> entry in _operators)
             {
-                try { entry.Value.Exit();}
+                try
+                {
+                    entry.Value.Exit();
+                }
                 catch (SocketException e)
                 {
                     Log(e.Message);
