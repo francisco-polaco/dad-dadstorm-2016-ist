@@ -7,12 +7,12 @@ namespace Slave
     public abstract class State : ISlave, ILogUpdate, ISibling
     {
         private Slave _slaveObj;
-        private IList<ISibling> _siblings;
+        private IList<ISibling> _siblings = new List<ISibling>();
 
         // getters and setters
         public Slave SlaveObj => _slaveObj;
 
-        public IList<ISibling> Siblings => _siblings;
+        public IList<ISibling> Siblings { get; set; }
 
         protected State(Slave slave)
         {
@@ -23,11 +23,8 @@ namespace Slave
 
         public abstract void ReplicaUpdate(string replicaUrl, IList<string> tupleFields);
 
-        public bool PollTuple(TuplePack toRoute)
-        {
-            return SlaveObj.SeenTuplePacks.Contains(toRoute);
-        }
-
+        public abstract bool PollTuple(TuplePack toRoute);
+      
         public void AnnounceTuple(TuplePack toAnnounce)
         {
             if(!SlaveObj.SeenTuplePacks.Contains(toAnnounce))

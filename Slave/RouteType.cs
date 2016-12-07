@@ -8,16 +8,19 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.Remoting.Messaging;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Timers;
 
 namespace Slave
 {
     public delegate void RemoteAsyncDelegate(TuplePack tuple);
-
+   
     [Serializable]
     public abstract class RouteParent : Route
     {
         private ConcurrentQueue<int> _invalidIndexes = new ConcurrentQueue<int>();
         private string _semantic;
+        private bool _tupleState = false;
 
         protected RouteParent(string semantic)
         {
@@ -89,17 +92,8 @@ namespace Slave
             RemoteAsyncDelegate remoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[index].Dispatch);
             if (_semantic.Equals("at-most-once"))
                 remoteDel.BeginInvoke(inputPack, null, null);
-            if (_semantic.Equals("at-most-once"))
+            if(_semantic.Equals("exactly-once") || _semantic.Equals("at-least-once"))
             {
-                remoteDel.BeginInvoke(
-                    inputPack,
-                    (IAsyncResult ar) =>
-                    {
-                        TimerTask tt = new TimerTask(3000,false,TimeoutHandler);
-                    },
-                    null);
-            }
-            if(_semantic.Equals("exactly-once")) { 
                 remoteDel.BeginInvoke(
                     inputPack,
                     (IAsyncResult ar) =>
@@ -108,7 +102,13 @@ namespace Slave
                         {
                             remoteDel.EndInvoke(ar);
                         }
+                        // it crashed
                         catch (SocketException e)
+                        {
+                            TryAgain(inputPack, index, urls);
+                        }
+                        // it may be slowed
+                        catch (Exception e)
                         {
                             TryAgain(inputPack, index, urls);
                         }
@@ -150,11 +150,6 @@ namespace Slave
         protected void WriteTuplePack(IList<string> content)
         {
             WriteToFile(MergeOutput(content));
-        }
-
-        private void TimeoutHandler(object sender, EventArgs eventArgs)
-        {
-            
         }
     }
 

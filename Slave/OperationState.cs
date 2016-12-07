@@ -22,12 +22,18 @@ namespace Slave
             // put job in queue
             SlaveObj.AddJob(input);
             // behave likea slow network/operator
-            Thread.Sleep(6000);
+            Thread.Sleep(SlaveObj.RandSeed.Next(1000,5000));
+            throw new SlowException();
         }
 
         public override void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
         {
             // nothing to do (no jobs processed)
+            throw new NotImplementedException();
+        }
+
+        public override bool PollTuple(TuplePack toRoute)
+        {
             throw new NotImplementedException();
         }
     }
@@ -41,7 +47,6 @@ namespace Slave
 
         public override void Dispatch(TuplePack input)
         {
-           
             // start command was issued || unfreeze happened
             if (input == null) 
             {
@@ -59,9 +64,10 @@ namespace Slave
                     return;
 
                 // input via file
+                int packNumber = 0;
                 foreach (string s in tuples)
                 {
-                    ProcessRoutePack(new TuplePack(-2, SlaveObj.Url, SplitTuple(s)));
+                    ProcessRoutePack(new TuplePack(packNumber++, "File Imported", SplitTuple(s)));
                 }
             }
             // upstream operator has sent a tuple
@@ -75,7 +81,13 @@ namespace Slave
         private void ProcessRoutePack(TuplePack input)
         {
             SleepInterval(SlaveObj.IntervalValue);
-            Console.WriteLine("Attempting to process tuple: " + MergeOutput(input.Content));
+            Console.WriteLine("Attempting to process tuple: " + input.ToString());
+
+            if (SlaveObj.SeenTuplePacks.Contains(input))
+            {
+                Console.WriteLine("Tuple has already been seen by one of my siblings!");
+                return;
+            }
 
             // Check if the tuple was already seen
             if (SlaveObj.Semantic.Equals("exactly-once"))
@@ -83,15 +95,19 @@ namespace Slave
                 Console.WriteLine("Deciding with my siblings...");
                 // while loop:
                 //  break conditions:
-                //    -> if one of the decisions is true, its sign that the tuple has already been processed.
+                //    -> if one of the decisions is false, its sign that the tuple hasn't been processed.
                 //    -> if all the decisions are false and the number of them it's equal to the siblings number - then you can assume that none processed. 
                 // so try again until you can match the break conditions. 
                 while (true)
                 {
-                    Thread.Sleep(2000);
+                    Thread.Sleep(SlaveObj.RandSeed.Next(800,1500));
                     List<bool> decisions = MayIProcess(input);
                     // Can't know for sure if the input has been processed, since a sibling didn't respond
-                    if (decisions.Count == Siblings.Count || AlreadySeen(decisions))
+                    if (AlreadySeen(decisions)) {
+                        Console.WriteLine("Tuple has already been seen by one of my siblings!");
+                        break;
+                    }
+                    if (decisions.Count == Siblings.Count || NoneSeen(decisions))
                         break;
                 }
             }
@@ -128,6 +144,11 @@ namespace Slave
         public override void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
         {
             SlaveObj.PuppetLogProxy.ReplicaUpdate(replicaUrl, tupleFields);
+        }
+
+        public override bool PollTuple(TuplePack toRoute)
+        {
+            return SlaveObj.SeenTuplePacks.Contains(toRoute);
         }
 
         public void DestributeTuple(TuplePack toAnnounce)
@@ -178,12 +199,13 @@ namespace Slave
         private List<bool> MayIProcess(TuplePack input)
         {
             List<bool> decisions = new List<bool>();
+            Siblings = new List<ISibling>();
             // Query my brothers
             foreach (string siblingUrl in SlaveObj.Siblings)
             {
                 try
                 {
-                    var replica = (ISibling)Activator.GetObject(typeof(ISibling), siblingUrl);
+                    ISibling replica = (ISibling) Activator.GetObject(typeof(ISibling), siblingUrl);
                     Siblings.Add(replica);
                     decisions.Add(replica.PollTuple(input));
                 }
@@ -192,8 +214,18 @@ namespace Slave
                     // Sibling has crashed don't consider it
                     SlaveObj.Siblings.Remove(siblingUrl);
                 }
+                catch (NotImplementedException e)
+                {
+                    // Sibling doens't respond
+                }
+
             }
             return decisions;
+        }
+
+        private bool NoneSeen(List<bool> decisions)
+        {
+            return !decisions.Contains(true);
         }
 
         private bool AlreadySeen(List<bool> decisions)

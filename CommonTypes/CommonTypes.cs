@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Net.Sockets;
 using System.Runtime.Remoting;
 using System.Runtime.Serialization;
 using System.Timers;
@@ -227,18 +229,23 @@ namespace CommonTypes
     {
         private System.Timers.Timer _timer;
 
-        public TimerTask(int interval, bool repeat, EventHandler handler)
+        public TimerTask(int interval, bool repeat, IAsyncResult ar, ElapsedEventHandler handler)
         {
             _timer = new Timer();
-            _timer.Elapsed += new ElapsedEventHandler(handler);
+            _timer.Elapsed += handler;
             _timer.AutoReset = repeat;
             _timer.Interval = interval;
-            _timer.Enabled = true;
+
         }
         
         public void StopTimer() { _timer.Stop(); }
         
         public void StartTimer() { _timer.Start(); }
+    }
+
+    [Serializable]
+    public class SlowException : RemotingException
+    {
     }
 
 }

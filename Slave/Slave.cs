@@ -8,6 +8,7 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security;
+using System.Threading;
 
 namespace Slave
 {
@@ -43,6 +44,7 @@ namespace Slave
 
     public class Slave : MarshalByRefObject, ISlave, IRemoteCmdInterface, ILogUpdate, ISibling
     {
+        private System.Random _rnd;
         private int _seqNumber = 0;
         private string _url;
         private Import _importObj;
@@ -71,10 +73,13 @@ namespace Slave
             _seenTuplePacks = new List<TuplePack>();
             _semantic = semantic;
             _siblings = siblings;
+            _rnd = new System.Random();
             init();
         }
 
         // getters, setters
+
+        public System.Random RandSeed => _rnd;
 
         public List<string> Siblings
         {
@@ -220,12 +225,13 @@ namespace Slave
         public void Freeze()
         {
             _state = new FrozenState(this);
-            Console.WriteLine("Slave with url " + _url + " is now fozen!");
+            Console.WriteLine("Slave with url " + _url + " is now frozen!");
         }
 
         // change state to unfrozen
         public void Unfreeze()
         {
+            Console.WriteLine("Slave with url " + _url + " is now unfrozen!");
             _state = new UnfrozenState(this);
             _state.Dispatch(null);
         }
@@ -235,7 +241,10 @@ namespace Slave
         {
             Unfreeze(); // even if the current state is unfrozen, it unfrozes again to dispatch queued jobs
             System.Console.WriteLine("Slave " + _url + " exiting...");
-            Environment.Exit(1);
+            Environment.Exit(Environment.ExitCode);
+
+
+            //Environment.Exit(1);
         }
 
         // log to Puppet Master (or not!)
