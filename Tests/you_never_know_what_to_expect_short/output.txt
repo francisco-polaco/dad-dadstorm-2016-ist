@@ -1,4 +1,5 @@
 1, user3, "www.tecnico.ulisboa.pt"
 6, user4, "www.tecnico.ulisboa.pt"
 9, user6, "www.tecnico.ulisboa.pt"
+6, user4, "www.tecnico.ulisboa.pt"
 12, user5, "www.tecnico.ulisboa.pt"
