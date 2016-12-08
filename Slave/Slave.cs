@@ -215,6 +215,7 @@ namespace Slave
                         }
                         catch (Exception e)
                         {
+                            Console.WriteLine("lololsoslls");
                             whileCond = false;
                         }
                     }

@@ -123,7 +123,7 @@ namespace Slave
             }
 
             IList<TuplePack> tuplesList = SlaveObj.ProcessObj.Process(input);
-
+           
             if (tuplesList != null)
             {
                 string processedTuples = string.Empty;
@@ -175,6 +175,9 @@ namespace Slave
                 // he is dead or slowed so it's opinion doens't count 
                 catch (Exception e) { }
             }
+            // i am alone I can assume I am my own boss
+            if (purposed.Count == 0)
+                return false;
             return !purposed.Contains(false);
         }
 
