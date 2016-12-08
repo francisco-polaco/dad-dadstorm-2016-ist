@@ -88,7 +88,7 @@ namespace Slave
                 Console.WriteLine("Tuple has already been seen by one of my siblings!");
                 return;
             }
-
+            /*
             // Check if the tuple was already seen
             if (SlaveObj.Semantic.Equals("exactly-once"))
             {
@@ -107,11 +107,15 @@ namespace Slave
                         Console.WriteLine("Tuple has already been seen by one of my siblings!");
                         break;
                     }
-                    if (decisions.Count == Siblings.Count || NoneSeen(decisions))
+                    if (decisions.Count == Siblings.Count && NoneSeen(decisions))
                         break;
                 }
-            }
+            }*/
 
+            Process copy = null;
+            if (SlaveObj.Stateful)
+                copy = SlaveObj.ProcessObj.Clone();
+     
             IList<TuplePack> tuplesList = SlaveObj.ProcessObj.Process(input);
 
             if (tuplesList != null)
@@ -122,7 +126,33 @@ namespace Slave
                     tuplepack.OpUrl = SlaveObj.Url;
                     tuplepack.SeqNumber = SlaveObj.SeqNumber;
                     SlaveObj.SeqNumber++;
-                    
+
+                    // Check if the tuple was already seen
+                    if (SlaveObj.Semantic.Equals("exactly-once"))
+                    {
+                        Console.WriteLine("Deciding with my siblings...");
+                        // while loop:
+                        //  break conditions:
+                        //    -> if one of the decisions is false, its sign that the tuple hasn't been processed.
+                        //    -> if all the decisions are false and the number of them it's equal to the siblings number - then you can assume that none processed. 
+                        // so try again until you can match the break conditions. 
+                        while (true)
+                        {
+                            Thread.Sleep(SlaveObj.RandSeed.Next(800, 1500));
+                            List<bool> decisions = MayIProcess(input);
+                            // Can't know for sure if the input has been processed, since a sibling didn't respond
+                            if (AlreadySeen(decisions))
+                            {
+                                Console.WriteLine("Tuple has already been seen by one of my siblings!");
+                                if (SlaveObj.Stateful)
+                                    SlaveObj.ProcessObj = copy;
+                                return;
+                            }
+                            if (decisions.Count == Siblings.Count && NoneSeen(decisions))
+                                break;
+                        }
+                    }
+
                     // Route
                     SlaveObj.RouteObj.Route(tuplepack);
 

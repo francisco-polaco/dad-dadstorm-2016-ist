@@ -16,5 +16,6 @@ namespace Slave
     public interface Process
     {
         IList<TuplePack> Process(TuplePack input);
+        Process Clone();
     }
 }
