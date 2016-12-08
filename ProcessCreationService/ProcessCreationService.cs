@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using CommonTypes;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
@@ -17,7 +16,6 @@ namespace ProcessCreationService
     {
         static void Main(string[] args)
         {
-            //Console.Write("Insert the Process Creation Service name: ");
             ProcessCreationService pcs = new ProcessCreationService();
             Console.WriteLine("<Enter to exit> ");
             Console.ReadLine();    

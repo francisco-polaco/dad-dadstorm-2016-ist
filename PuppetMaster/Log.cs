@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -64,13 +63,6 @@ namespace PuppetMaster
 
         public void Exit()
         {
-            //_isThreadToExit = true;
-            //lock (this)
-            //{
-            //    Monitor.PulseAll(this);
-            //}
-            //// This need to be fixed
-            //_writingThread.Join();
             _writingThread.Abort();
         }
 
@@ -92,6 +84,11 @@ namespace PuppetMaster
                 res += field + ", ";
             }
             Update("tuple " + replicaUrl + " " + res.Substring(0, res.Length - 2));
+        }
+
+        public override object InitializeLifetimeService()
+        {
+            return null;
         }
     }
 }

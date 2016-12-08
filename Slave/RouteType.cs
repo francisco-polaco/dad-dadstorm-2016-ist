@@ -2,14 +2,9 @@
 using System.Collections.Concurrent;
 using CommonTypes;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using System.Runtime.Remoting.Messaging;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Timers;
 
 namespace Slave
 {
@@ -94,7 +89,7 @@ namespace Slave
             RemoteAsyncDelegate remoteDel = new RemoteAsyncDelegate(GetDownstreamReplicas(urls)[index].Dispatch);
             if (_semantic.Equals("at-most-once"))
                 remoteDel.BeginInvoke(inputPack, null, null);
-            if(_semantic.Equals("exactly-once") || _semantic.Equals("at-least-once"))
+            else if(_semantic.Equals("exactly-once") || _semantic.Equals("at-least-once"))
             {
                 remoteDel.BeginInvoke(
                     inputPack,

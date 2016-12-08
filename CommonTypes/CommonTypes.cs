@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Net.Sockets;
 using System.Runtime.Remoting;
-using System.Runtime.Serialization;
 using System.Timers;
 
 namespace CommonTypes

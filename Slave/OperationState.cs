@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -66,12 +64,6 @@ namespace Slave
             // start command was issued || unfreeze happened
             if (input == null) 
             {
-                /*
-                while (SlaveObj.JobQueue.Count != 0)
-                {
-                    ProcessRoutePack(SlaveObj.GetJob());
-                }*/
-
                 // try importing
                 List<string> tuples = SlaveObj.ImportObj.Import();
 
@@ -272,6 +264,7 @@ namespace Slave
         private List<bool> MayIProcess(TuplePack input)
         {
             List<bool> decisions = new List<bool>();
+            List<string> toRemove = new List<string>();
             Siblings = new List<ISibling>();
             // Query my brothers
             foreach (string siblingUrl in SlaveObj.Siblings)
@@ -285,14 +278,24 @@ namespace Slave
                 catch (SocketException e)
                 {
                     // Sibling has crashed don't consider it
-                    SlaveObj.Siblings.Remove(siblingUrl);
+                    toRemove.Add(siblingUrl);
                 }
                 catch (NotImplementedException e)
                 {
                     // Sibling doens't respond
                 }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.GetBaseException());
+                }
 
             }
+            // remove the siblings that don't need to be considered
+            foreach (var siblingurl in toRemove)
+            {
+                SlaveObj.Siblings.Remove(siblingurl);
+            }
+
             return decisions;
         }
 

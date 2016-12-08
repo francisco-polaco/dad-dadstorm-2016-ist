@@ -1,5 +1,4 @@
-﻿using System;
-using CommonTypes;
+﻿using CommonTypes;
 using System.Collections.Generic;
 
 namespace Slave

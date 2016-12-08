@@ -8,7 +8,6 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Security;
 using System.Threading;
 
 namespace Slave
@@ -165,8 +164,12 @@ namespace Slave
             get { return _isLogFull;  }
             set { _isLogFull = value; }
         }
-        
+
         // other methods
+        public override object InitializeLifetimeService()
+        {
+            return null;
+        }
 
         public void init()
         {
@@ -218,7 +221,6 @@ namespace Slave
                 }
                 lock (this)
                 {
-                    Console.WriteLine(input);
                     _state.Dispatch(input);
                 }
             }

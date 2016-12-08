@@ -4,13 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Tcp;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PuppetMaster
@@ -145,11 +139,6 @@ namespace PuppetMaster
                 {
                     _isLogFull = true;
                 }
-                //else if (pieces.Length == 2 && pieces[1].Equals("light"))
-                //{
-                //    _isLogFull = false;
-                //}
-
             }
             else if (cmd.StartsWith("OP"))
             {
@@ -162,7 +151,6 @@ namespace PuppetMaster
                 {
                     listUrls.Add(res[i].Replace(",", string.Empty));
                 }
-
 
                 string ip = GetOwnIp();
 
@@ -185,8 +173,6 @@ namespace PuppetMaster
                 }
 
                 PuppetMaster.GetInstance().CreateOperator(opId, listUrls);
-
-
             }
             else
             {

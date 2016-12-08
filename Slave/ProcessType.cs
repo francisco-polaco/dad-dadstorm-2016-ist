@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using CommonTypes;
 
@@ -30,17 +28,6 @@ namespace Slave
             }
             return null;
         }
-
-        public Process Clone()
-        {
-            Uniq u = (Uniq) new ProcessingFactory().GetProcessing(new string[] {"uniq", (this._fieldNumber+1).ToString()});
-            u._fieldNumber = this._fieldNumber;
-            foreach (var str in _seenTuples)
-            {
-                u._seenTuples.Add(str);
-            }
-            return u;
-        }
     }
 
     [Serializable]
@@ -60,13 +47,6 @@ namespace Slave
             List<string> output = new List<string>() {_seenTuples.ToString()};
             return new List<TuplePack>() {new TuplePack(0, null, output)};
         }
-
-        public Process Clone()
-        {
-            Count c = (Count) new ProcessingFactory().GetProcessing(new string[] { "count" });
-            c.SeenTuples = this.SeenTuples;
-            return c;
-        }
     }
 
     [Serializable]
@@ -75,11 +55,6 @@ namespace Slave
         public IList<TuplePack> Process(TuplePack input)
         {
             return new List<TuplePack>() {input};
-        }
-
-        public Process Clone()
-        {
-            throw new NotImplementedException();
         }
     }
 
@@ -112,11 +87,6 @@ namespace Slave
                 case "=": return String.Compare(input.Content[_fieldNumber], _value) == 0 ? outputList : null;
                 default: return null;
             }
-        }
-
-        public Process Clone()
-        {
-            throw new NotImplementedException();
         }
     }
 
@@ -174,11 +144,6 @@ namespace Slave
             }
 
             return outputTuplePacks.Count == 0 ?  null : outputTuplePacks;
-        }
-
-        public Process Clone()
-        {
-            throw new NotImplementedException();
         }
     }
 }

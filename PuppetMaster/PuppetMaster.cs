@@ -1,14 +1,10 @@
 ﻿using CommonTypes;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Net.Sockets;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PuppetMaster
@@ -20,7 +16,6 @@ namespace PuppetMaster
 
         private Log _logger;
         private bool _loggerOnline = false;
-        // private Queue<string> _loggerBuffer = new Queue<string>();
 
         private Dictionary<int, Operator> _operators;
 
@@ -81,24 +76,6 @@ namespace PuppetMaster
         public void Log(string toLog)
         {
             _logger.Update(toLog);
-            //if (_logger != null)
-            //{
-            //    lock (this)
-            //    {
-            //        if (_loggerBuffer.Count != 0){
-            //            foreach (string s in _loggerBuffer) _logger.Update(s);
-            //            _loggerBuffer.Clear();
-            //        }
-            //    }
-            //    _logger.Update(toLog);
-            //}
-            //else
-            //{
-            //    lock (this)
-            //    {
-            //        _loggerBuffer.Enqueue(toLog);
-            //    }
-            //}
         }
 
         public void CreateOperator(int id, List<string> urls)
@@ -209,7 +186,6 @@ namespace PuppetMaster
 
     }
 
-
     public class PcsManager
     {
 
@@ -223,9 +199,6 @@ namespace PuppetMaster
 
         public void SendCommand(ConnectionPack cp)
         {
-            //PuppetMaster.GetInstance().Log("============== Connection Pack ============");
-            //PuppetMaster.GetInstance().Log(cp.ToString());
-            //PuppetMaster.GetInstance().Log("===========================================");
             HashSet<string> set = new HashSet<string>();
             foreach (string url in cp.ListUrls)
             {
