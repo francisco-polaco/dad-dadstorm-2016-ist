@@ -209,7 +209,7 @@ namespace Slave
                             whileCond = State.TryToPurpose(input);
                             if (SeenTuplePacks.Contains(input))
                                 return;
-                            Console.WriteLine("Purposing tuple!!");
+                            Console.WriteLine("Purposing tuple to my sibilings!!");
                             Thread.Sleep(Convert.ToInt32((Math.Pow(2, baseExponent) - 1)/2));
                             baseExponent += _rnd.NextDouble();
                         }

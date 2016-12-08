@@ -126,7 +126,7 @@ namespace Slave
                 _invalidIndexes.Enqueue(index);
             if (_invalidIndexes.Count == urls.Count)
             {
-                Console.WriteLine("All downstream replicas are down!");
+                Console.WriteLine("All downstream replicas are DOWN!");
                 return;
             }
             for (int i = 0; i < urls.Count; i++)

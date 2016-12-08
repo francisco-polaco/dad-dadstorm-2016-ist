@@ -90,7 +90,7 @@ namespace Slave
         private void ProcessRoutePack(TuplePack input)
         {
             SleepInterval(SlaveObj.IntervalValue);
-            Console.WriteLine("Attempting to process tuple: " + input.ToString());
+            Console.WriteLine("Let's see if I have to process: " + input);
 
             if (SlaveObj.SeenTuplePacks.Contains(input))
             {
