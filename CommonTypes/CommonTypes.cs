@@ -37,6 +37,7 @@ namespace CommonTypes
     {
         bool PollTuple(TuplePack toRoute);
         void AnnounceTuple(TuplePack toAnnounce);
+        bool Purpose(TuplePack toDispatch);
 
     }
 

@@ -24,15 +24,11 @@ namespace Slave
         public abstract void ReplicaUpdate(string replicaUrl, IList<string> tupleFields);
 
         public abstract bool PollTuple(TuplePack toRoute);
-      
-        public void AnnounceTuple(TuplePack toAnnounce)
-        {
-            if (!SlaveObj.SeenTuplePacks.Contains(toAnnounce)) {
-                SlaveObj.SeenTuplePacks.Add(toAnnounce);
-                // if I belong to a operator that needs to mantain state I need to process
-                if (SlaveObj.Stateful)
-                    SlaveObj.ProcessObj.Process(toAnnounce);
-            }
-        }
+
+        public abstract void AnnounceTuple(TuplePack toAnnounce);
+  
+        public abstract bool Purpose(TuplePack toDispatch);
+
+        public abstract bool TryToPurpose(TuplePack purpose);
     }
 }

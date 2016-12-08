@@ -192,8 +192,33 @@ namespace Slave
         public void Dispatch(TuplePack input)
         {
             Console.WriteLine("Dispatch method called...");
-            if (_semantic.Equals("exactly-once")) { 
-                lock (this) {
+            if (_semantic.ToLower().Equals("exactly-once")) {
+                if(input != null && !
+                    RouteObj.IsLast()) {
+                    // Exponencial backoff
+                    double baseExponent = 9;
+                    bool whileCond = true;
+                    while (whileCond)
+                    {
+                        try
+                        {
+                            // maybe one of my brothers already seen it and i don't need to purpose
+                            whileCond = State.TryToPurpose(input);
+                            if (SeenTuplePacks.Contains(input))
+                                return;
+                            Console.WriteLine("Purposing tuple!!");
+                            Thread.Sleep(Convert.ToInt32((Math.Pow(2, baseExponent) - 1)/2));
+                            baseExponent += _rnd.NextDouble();
+                        }
+                        catch (Exception e)
+                        {
+                            whileCond = false;
+                        }
+                    }
+                }
+                lock (this)
+                {
+                    Console.WriteLine(input);
                     _state.Dispatch(input);
                 }
             }
@@ -243,7 +268,13 @@ namespace Slave
         {
             Console.WriteLine("Slave with url " + _url + " is now unfrozen!");
             _state = new UnfrozenState(this);
-            _state.Dispatch(null);
+            int size = _jobQueue.Count();
+            for (int i = 0; i < size; i++)
+            {
+                var tuple = GetJob();
+                Console.WriteLine("Slave with url " + _url + " dispatching job #" + i + " in the queue!");
+                Dispatch(tuple);
+            }
         }
 
         // log to Puppet Master (or not!)
@@ -255,6 +286,7 @@ namespace Slave
         /// auxiliary: add job to jobQueue
         public void AddJob(TuplePack tuple)
         {
+            Console.WriteLine(tuple);
             if(_jobQueue.Contains(tuple))
                 return;
             _jobQueue.Enqueue(tuple);
@@ -282,6 +314,11 @@ namespace Slave
         public void AnnounceTuple(TuplePack toAnnounce)
         {
             State.AnnounceTuple(toAnnounce);
+        }
+
+        public bool Purpose(TuplePack toDispatch)
+        {
+            return State.Purpose(toDispatch);
         }
     }
 }

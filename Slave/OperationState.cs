@@ -19,6 +19,7 @@ namespace Slave
 
         public override void Dispatch(TuplePack input)
         {
+            Console.WriteLine(input);
             // put job in queue
             SlaveObj.AddJob(input);
             // behave likea slow network/operator
@@ -36,6 +37,21 @@ namespace Slave
         {
             throw new NotImplementedException();
         }
+
+        public override void AnnounceTuple(TuplePack toAnnounce)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool Purpose(TuplePack toDispatch)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool TryToPurpose(TuplePack purpose)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class UnfrozenState : State
@@ -50,10 +66,11 @@ namespace Slave
             // start command was issued || unfreeze happened
             if (input == null) 
             {
+                /*
                 while (SlaveObj.JobQueue.Count != 0)
                 {
                     ProcessRoutePack(SlaveObj.GetJob());
-                }
+                }*/
 
                 // try importing
                 List<string> tuples = SlaveObj.ImportObj.Import();
@@ -85,10 +102,10 @@ namespace Slave
 
             if (SlaveObj.SeenTuplePacks.Contains(input))
             {
-                Console.WriteLine("Tuple has already been seen by one of my siblings!");
+                Console.WriteLine("I already seen that tuple!");
                 return;
             }
-            /*
+
             // Check if the tuple was already seen
             if (SlaveObj.Semantic.Equals("exactly-once"))
             {
@@ -100,22 +117,19 @@ namespace Slave
                 // so try again until you can match the break conditions. 
                 while (true)
                 {
-                    Thread.Sleep(SlaveObj.RandSeed.Next(800,1500));
+                    Thread.Sleep(SlaveObj.RandSeed.Next(800, 1500));
                     List<bool> decisions = MayIProcess(input);
                     // Can't know for sure if the input has been processed, since a sibling didn't respond
-                    if (AlreadySeen(decisions)) {
+                    if (AlreadySeen(decisions))
+                    {
                         Console.WriteLine("Tuple has already been seen by one of my siblings!");
-                        break;
+                        return;
                     }
                     if (decisions.Count == Siblings.Count && NoneSeen(decisions))
                         break;
                 }
-            }*/
+            }
 
-            Process copy = null;
-            if (SlaveObj.Stateful)
-                copy = SlaveObj.ProcessObj.Clone();
-     
             IList<TuplePack> tuplesList = SlaveObj.ProcessObj.Process(input);
 
             if (tuplesList != null)
@@ -127,32 +141,6 @@ namespace Slave
                     tuplepack.SeqNumber = SlaveObj.SeqNumber;
                     SlaveObj.SeqNumber++;
 
-                    // Check if the tuple was already seen
-                    if (SlaveObj.Semantic.Equals("exactly-once"))
-                    {
-                        Console.WriteLine("Deciding with my siblings...");
-                        // while loop:
-                        //  break conditions:
-                        //    -> if one of the decisions is false, its sign that the tuple hasn't been processed.
-                        //    -> if all the decisions are false and the number of them it's equal to the siblings number - then you can assume that none processed. 
-                        // so try again until you can match the break conditions. 
-                        while (true)
-                        {
-                            Thread.Sleep(SlaveObj.RandSeed.Next(800, 1500));
-                            List<bool> decisions = MayIProcess(input);
-                            // Can't know for sure if the input has been processed, since a sibling didn't respond
-                            if (AlreadySeen(decisions))
-                            {
-                                Console.WriteLine("Tuple has already been seen by one of my siblings!");
-                                if (SlaveObj.Stateful)
-                                    SlaveObj.ProcessObj = copy;
-                                return;
-                            }
-                            if (decisions.Count == Siblings.Count && NoneSeen(decisions))
-                                break;
-                        }
-                    }
-
                     // Route
                     SlaveObj.RouteObj.Route(tuplepack);
 
@@ -163,7 +151,7 @@ namespace Slave
                         // if I need to mantain the state I need to assure that all of my siblings get the tuple
                         if (SlaveObj.Stateful)
                         {
-                            // avoid resind to the siblings that already received
+                            // avoid resend to the siblings that already received
                             int difference = SlaveObj.Siblings.Count - sucesffulySent.Count;
                             while (difference != 0)
                             {
@@ -181,6 +169,23 @@ namespace Slave
             }
         }
 
+        // if it there is someone that respondes false, then he is processing something
+        public override bool TryToPurpose(TuplePack input)
+        {
+            List<bool> purposed = new List<bool>();
+            foreach (string siblingUrl in SlaveObj.Siblings)
+            {
+                try
+                {
+                    var replica = (ISibling)Activator.GetObject(typeof(ISibling), siblingUrl);
+                    purposed.Add(replica.Purpose(input));
+                }
+                // he is dead or slowed so it's opinion doens't count 
+                catch (Exception e) { }
+            }
+            return !purposed.Contains(false);
+        }
+
         // Log the events
         public override void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
         {
@@ -192,10 +197,26 @@ namespace Slave
             return SlaveObj.SeenTuplePacks.Contains(toRoute);
         }
 
+        public override void AnnounceTuple(TuplePack toAnnounce)
+        {
+            if (!SlaveObj.SeenTuplePacks.Contains(toAnnounce))
+            {
+                SlaveObj.SeenTuplePacks.Add(toAnnounce);
+                // if I belong to a operator that needs to mantain state I need to process
+                if (SlaveObj.Stateful)
+                    SlaveObj.ProcessObj.Process(toAnnounce);
+            }
+        }
+
+        public override bool Purpose(TuplePack toDispatch)
+        {
+            return Monitor.IsEntered(SlaveObj);
+        }
+
         public List<string> DestributeTuple(TuplePack toAnnounce, List<string> siblingsUrls)
         {
             // assures that we don't stay in while loop so often
-            // and in the case of need to matain state we get the tuple asap!
+            // and in the case of need to mantain state we get the tuple asap!
             List<string> sucessfullySent = new List<string>();
             foreach (string siblingUrl in siblingsUrls)
             {

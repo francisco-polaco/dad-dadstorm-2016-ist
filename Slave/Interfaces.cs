@@ -11,6 +11,7 @@ namespace Slave
     public interface Route
     {
         void Route(TuplePack input);
+        bool IsLast();
     }
 
     public interface Process

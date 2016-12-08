@@ -29,6 +29,8 @@ namespace Slave
 
         public abstract void Route(TuplePack input);
 
+        public abstract bool IsLast();
+ 
         /// <summary>
         /// Assumes tcp channel created in Slave, since it is used by it!
         /// </summary>
@@ -167,6 +169,11 @@ namespace Slave
         {
             SendTuplePack(0, _urls, input);
         }
+
+        public override bool IsLast()
+        {
+            return false;
+        }
     }
 
     [Serializable]
@@ -185,6 +192,11 @@ namespace Slave
             // rnd.Next(replica.Count) - number between [0;replica.count[
             int randomInt = rnd.Next(_urls.Count);
             SendTuplePack(randomInt, _urls, input);
+        }
+
+        public override bool IsLast()
+        {
+            return false;
         }
     }
 
@@ -207,6 +219,11 @@ namespace Slave
                 hashNumber = (input.Content[_fieldId - 1].GetHashCode()%(_urls.Count));
             SendTuplePack(hashNumber, _urls, input);
         }
+
+        public override bool IsLast()
+        {
+            return false;
+        }
     }
 
     [Serializable]
@@ -219,6 +236,11 @@ namespace Slave
         public override void Route(TuplePack input)
         {
             WriteTuplePack(input.Content);
+        }
+
+        public override bool IsLast()
+        {
+            return true;
         }
     }
 }
