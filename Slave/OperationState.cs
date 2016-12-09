@@ -45,11 +45,6 @@ namespace Slave
         {
             throw new NotImplementedException();
         }
-
-        public override bool TryToPurpose(TuplePack purpose)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     public class UnfrozenState : State
@@ -94,51 +89,24 @@ namespace Slave
          // Responsible to process and route the tuples
          private void ProcessRoutePack(TuplePack input)
          {
-             SleepInterval(SlaveObj.IntervalValue);
-             Console.WriteLine("Let's see if I have to process: " + input);
+            SleepInterval(SlaveObj.IntervalValue);
+            Console.WriteLine("Let's see if I have to process: " + input);
 
-            double baseExponent = SlaveObj.RandSeed.Next(10);
-            Dictionary<string, IList<TuplePack>> proposals;
-            // exponencial backoff
-             DateTime currentDate = DateTime.Now;
-            while ((proposals = TryToPurpose(currentDate, input)) == null)
-            {
-                Thread.Sleep(Convert.ToInt32((Math.Pow(2, baseExponent) - 1) / 2));
-                baseExponent += SlaveObj.RandSeed.Next(3);
-            }
-             ChooseProposal(currentDate, proposals);
+            if (SlaveObj.Semantic.ToLower().Equals("exactly-once")) {
 
-
-             /*if (SlaveObj.SeenTuplePacks.Contains(input))
-             {
-                 Console.WriteLine("I already seen that tuple!");
-                 return;
-             }
- 
-            // Check if the tuple was already seen
-            if (SlaveObj.Semantic.Equals("exactly-once"))
-            {
-                Console.WriteLine("Deciding with my siblings...");
-                // while loop:
-                //  break conditions:
-                //    -> if one of the decisions is false, its sign that the tuple hasn't been processed.
-                //    -> if all the decisions are false and the number of them it's equal to the siblings number - then you can assume that none processed. 
-                // so try again until you can match the break conditions. 
-                while (true)
+                double baseExponent = SlaveObj.RandSeed.Next(10);
+                List<Proposal> proposals;
+                // exponencial backoff
+                Proposal p = new Proposal(DateTime.Now, input);
+                while ((proposals = TryToPurpose(p)) == null)
                 {
-                    Thread.Sleep(SlaveObj.RandSeed.Next(800, 1500));
-                    List<bool> decisions = MayIProcess(input);
-                    // Can't know for sure if the input has been processed, since a sibling didn't respond
-                    if (AlreadySeen(decisions))
-                    {
-                        Console.WriteLine("Tuple has already been seen by one of my siblings!");
-                        return;
-                    }
-                    if (decisions.Count == Siblings.Count && NoneSeen(decisions))
-                        break;
+                    Thread.Sleep(Convert.ToInt32((Math.Pow(2, baseExponent) - 1) / 2));
+                    baseExponent += SlaveObj.RandSeed.Next(3);
                 }
+                if (!ChooseProposal(proposals, p))
+                    return;
             }
- 
+
             IList<TuplePack> tuplesList = SlaveObj.ProcessObj.Process(input);
  
             if (tuplesList != null)
@@ -152,40 +120,27 @@ namespace Slave
  
                     // Route
                     SlaveObj.RouteObj.Route(tuplepack);
- 
-                    // If I processed I have seen it
-                    if (SlaveObj.Semantic.Equals("exactly-once")) {
+                    
+                    if(SlaveObj.Semantic.ToLower().Equals("exactly-once"))
+                        // if i have processed i have seen it
                         SlaveObj.SeenTuplePacks.Add(input);
-                        List<string> sucesffulySent = DestributeTuple(input, SlaveObj.Siblings);
-                        // if I need to mantain the state I need to assure that all of my siblings get the tuple
-                        if (SlaveObj.Stateful)
-                        {
-                            // avoid resend to the siblings that already received
-                            int difference = SlaveObj.Siblings.Count - sucesffulySent.Count;
-                            while (difference != 0)
-                            {
-                                sucesffulySent = DestributeTuple(input, sucesffulySent);
-                                difference = difference - sucesffulySent.Count;
-                            }
-                        }
-                    }
- 
+                                       
                     ReplicaUpdate(SlaveObj.Url, tuplepack.Content);
                     // Debug purposes
                     processedTuples += tuplepack.Content.Count == 1 ? tuplepack.Content[0] + " " : MergeOutput(tuplepack.Content) + " ";
                 }
                 Console.WriteLine("Processed from: " + MergeOutput(input.Content) + " : " + processedTuples);
-            }*/
+            }
          }
 
         // if it there is someone that respondes false, then he is processing something
-        public Dictionary<string, TuplePack> TryToPurpose(DateTime x, TuplePack input)
+        public List<Proposal> TryToPurpose(Proposal x)
         {
             // A node chooses to become the Leader and selects a sequence number x and 
             // value v to create a proposal P1(x, v).It sends this proposal to the acceptors 
             // and waits till a majority responds.
 
-            Dictionary<string,TuplePack> responses = new Dictionary<string, TuplePack>();
+            List<Proposal> responses = new List<Proposal>();
 
             List<string> toRemove = new List<string>();
             foreach (string siblingUrl in SlaveObj.Siblings)
@@ -193,7 +148,7 @@ namespace Slave
                 try
                 {
                     var replica = (ISibling) Activator.GetObject(typeof(ISibling), siblingUrl);
-                    responses[siblingUrl] = replica.Purpose(TODO);
+                    responses.Add(replica.Purpose(x));
                 }
                 // he is dead or slowed so it's opinion doens't count 
                 catch (SocketException e)
@@ -220,7 +175,7 @@ namespace Slave
             int rejects = 0;
             foreach (var response in responses)
             {
-                if (response.Value == null)
+                if (response == null)
                     rejects++;
             }
             if (rejects >= SlaveObj.Siblings.Count/2 + 1)
@@ -231,30 +186,83 @@ namespace Slave
                 return null;
 
             // remove possible nulls
-            Dictionary<string, TuplePack> output = new Dictionary<string, TuplePack>();
+            List<Proposal> output = new List<Proposal>();
             foreach (var proposal in responses)
             {
-                if (proposal.Value != null)
-                    output[proposal.Key] = proposal.Value;
+                if (proposal != null)
+                    output.Add(proposal);
             }
 
             return output;
         }
 
-        private TuplePack ChooseProposal(DateTime x, Dictionary<string, TuplePack> proposals, TuplePack toPropose)
+        private bool ChooseProposal(List<Proposal> proposals, Proposal x)
         {
             foreach (var proposal in proposals)
             {
-                if (!SlaveObj.SeenTuplePacks.Contains(proposal.Value))
+                if (!SlaveObj.SeenTuplePacks.Contains(proposal.GetProposal))
                 {
-                    SlaveObj.SeenTuplePacks.Add(proposal.Value);
+                    SlaveObj.SeenTuplePacks.Add(proposal.GetProposal);
                     if (SlaveObj.Stateful)
                     {
-                        SlaveObj.ProcessObj.Process(proposal.Value);
+                        SlaveObj.ProcessObj.Process(proposal.GetProposal);
                     }
                 }
+                proposals.Sort();
+                return SendProposals(proposals[proposals.Count-1]);
             }
-            return null;
+            // if no values have been accepted yet, uses its own
+            return SendProposals(x);
+        }
+
+        private bool SendProposals(Proposal x)
+        {
+            List<bool> responses = new List<bool>();
+
+            List<string> toRemove = new List<string>();
+            foreach (string siblingUrl in SlaveObj.Siblings)
+            {
+                try
+                {
+                    var replica = (ISibling)Activator.GetObject(typeof(ISibling), siblingUrl);
+                    responses.Add(replica.SendFinalProposal(x));
+                }
+                // he is dead or slowed so it's opinion doens't count 
+                catch (SocketException e)
+                {
+                    toRemove.Add(siblingUrl);
+                }
+                catch (Exception e)
+                {
+                    toRemove.Add(siblingUrl);
+                }
+            }
+
+            // remove crashed replicas
+            foreach (var crashed in toRemove)
+            {
+                SlaveObj.Siblings.Remove(crashed);
+            }
+
+            // no responses abort
+            if (responses.Count == 0)
+                return false;
+
+            // check the reject responses
+            int rejects = 0;
+            foreach (var response in responses)
+            {
+                if (response == false)
+                    rejects++;
+            }
+            if (rejects >= SlaveObj.Siblings.Count / 2 + 1)
+                return false;
+
+            // check the non responds
+            if (responses.Count < SlaveObj.Siblings.Count / 2 + 1)
+                return false;
+
+            return true;
         }
 
 
@@ -272,13 +280,15 @@ namespace Slave
 
         public override bool SendFinalProposal(Proposal x1)
         {
-            if (!SlaveObj.SeenTuplePacks.Contains(toPropose))
+            if (SlaveObj.SeenTuplePacks.Contains(x1.GetProposal))
+                return true;
+            bool max = true;
+            foreach (var proposals in SlaveObj.PaxosAggreedProposals)
             {
-                SlaveObj.SeenTuplePacks.Add(toPropose);
-                // if I belong to a operator that needs to mantain state I need to process
-                if (SlaveObj.Stateful)
-                    SlaveObj.ProcessObj.Process(toPropose);
+                if (x1.DateTime > proposals.DateTime)
+                    max = false;
             }
+            return max;
         }
 
         public override Proposal Purpose(Proposal x1)
@@ -299,32 +309,6 @@ namespace Slave
                 //If x < y, reply ‘reject’ along with y
                 //If x > y, reply ‘agree’ along with P2(y, v2)
             }
-        }
-
-        public List<string> DestributeTuple(TuplePack toAnnounce, List<string> siblingsUrls)
-        {
-            // assures that we don't stay in while loop so often
-            // and in the case of need to mantain state we get the tuple asap!
-            List<string> sucessfullySent = new List<string>();
-            foreach (string siblingUrl in siblingsUrls)
-            {
-                try
-                {
-                    var replica = (ISibling) Activator.GetObject(typeof(ISibling), siblingUrl);
-                    replica.SendFinalProposal(TODO);
-                    sucessfullySent.Add(siblingUrl);
-                }
-                // crashed - theres nothing we can do
-                catch (SocketException e)
-                {
-                    sucessfullySent.Add(siblingUrl);
-                }
-                // maybe slowed - we need to assure that it gets there
-                catch (SlowException e)
-                {
-                }
-            }
-            return sucessfullySent;
         }
 
         // Split tuple in fields
@@ -357,53 +341,6 @@ namespace Slave
                 Thread.Sleep(SlaveObj.IntervalValue);
         }
 
-        private List<bool> MayIProcess(TuplePack input)
-        {
-            List<bool> decisions = new List<bool>();
-            List<string> toRemove = new List<string>();
-            Siblings = new List<ISibling>();
-            // Query my brothers
-            foreach (string siblingUrl in SlaveObj.Siblings)
-            {
-                try
-                {
-                    ISibling replica = (ISibling) Activator.GetObject(typeof(ISibling), siblingUrl);
-                    Siblings.Add(replica);
-                    decisions.Add(replica.PollTuple(input));
-                }
-                catch (SocketException e)
-                {
-                    // Sibling has crashed don't consider it
-                    toRemove.Add(siblingUrl);
-                }
-                catch (NotImplementedException e)
-                {
-                    // Sibling doens't respond
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.GetBaseException());
-                }
-
-            }
-            // remove the siblings that don't need to be considered
-            foreach (var siblingurl in toRemove)
-            {
-                SlaveObj.Siblings.Remove(siblingurl);
-            }
-
-            return decisions;
-        }
-
-        private bool NoneSeen(List<bool> decisions)
-        {
-            return !decisions.Contains(true);
-        }
-
-        private bool AlreadySeen(List<bool> decisions)
-        {
-            return decisions.Contains(true);
-        }
-
+     
     }
 }

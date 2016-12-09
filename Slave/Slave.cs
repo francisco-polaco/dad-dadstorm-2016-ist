@@ -331,12 +331,12 @@ namespace Slave
 
         public bool SendFinalProposal(Proposal x1)
         {
-            State.SendFinalProposal(x);
+            return State.SendFinalProposal(x1);
         }
 
         public Proposal Purpose(Proposal x1)
         {
-            return State.Purpose(x);
+            return State.Purpose(x1);
         }
     }
 }

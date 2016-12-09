@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting;
+using System.Runtime.Remoting.Messaging;
 using System.Timers;
 
 namespace CommonTypes
@@ -40,7 +41,7 @@ namespace CommonTypes
 
     
     [System.Serializable]
-    public class Proposal
+    public class Proposal : IComparable
     {
         private DateTime _dateTime;
         private TuplePack _proposal;
@@ -60,6 +61,20 @@ namespace CommonTypes
         {
             get { return _proposal; }
         }
+
+        public override bool Equals(object obj)
+        {
+            Proposal o = (Proposal) obj;
+            return o.DateTime.Equals(_dateTime) && _proposal.Equals(o.GetProposal);
+        }
+
+        public int CompareTo(object obj)
+        {
+            Proposal p1 = (Proposal) obj;
+            return _dateTime.CompareTo(p1.DateTime);
+
+        }
+
     }
 
     [System.Serializable]
