@@ -61,6 +61,7 @@ namespace Slave
         private IList<TuplePack> _seenTuplePacks;
         private string _semantic;
         private List<string> _siblings;
+        private Dictionary<int, string> _bufferFirstOperatorLines;
 
         public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel, string semantic, List<string> siblings, bool stateful)
         {
@@ -82,6 +83,12 @@ namespace Slave
 
         // getters, setters
 
+        public Dictionary<int, string> BufferFirstOperatorLines
+        {
+            get { return _bufferFirstOperatorLines; }
+            set { _bufferFirstOperatorLines = value; }
+        }
+        
         public bool Stateful
         {
             get { return _stateful; }
@@ -195,7 +202,7 @@ namespace Slave
         public void Dispatch(TuplePack input)
         {
             Console.WriteLine("Dispatch method called...");
-            if (_semantic.ToLower().Equals("exactly-once")) {
+            /*if (_semantic.ToLower().Equals("exactly-once")) {
                 if(input != null && !
                     RouteObj.IsLast()) {
                     // Exponencial backoff
@@ -225,7 +232,7 @@ namespace Slave
                     _state.Dispatch(input);
                 }
             }
-            else 
+            else */
                 _state.Dispatch(input);
         }
 

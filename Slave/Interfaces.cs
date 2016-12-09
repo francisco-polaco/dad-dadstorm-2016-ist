@@ -5,7 +5,7 @@ namespace Slave
 {
     public interface Import
     {
-        List<string> Import();
+        IList<Dictionary<int, string>> Import();
     }
 
     public interface Route
