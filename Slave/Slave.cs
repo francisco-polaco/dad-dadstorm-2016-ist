@@ -321,14 +321,14 @@ namespace Slave
             return State.PollTuple(toRoute);
         }
 
-        public void AnnounceTuple(TuplePack toAnnounce)
+        public bool SendFinalProposal(DateTime x, TuplePack toPropose)
         {
-            State.AnnounceTuple(toAnnounce);
+            State.SendFinalProposal(x, toPropose);
         }
 
-        public bool Purpose(TuplePack toDispatch)
+        public IList<TuplePack> Purpose(DateTime x, TuplePack toDispatch)
         {
-            return State.Purpose(toDispatch);
+            return State.Purpose(x, toDispatch);
         }
     }
 }

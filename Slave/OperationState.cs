@@ -36,12 +36,12 @@ namespace Slave
             throw new NotImplementedException();
         }
 
-        public override void AnnounceTuple(TuplePack toAnnounce)
+        public override bool SendFinalProposal(DateTime x, TuplePack toPropose)
         {
             throw new NotImplementedException();
         }
 
-        public override bool Purpose(TuplePack toDispatch)
+        public override IList<TuplePack> Purpose(DateTime x, TuplePack toDispatch)
         {
             throw new NotImplementedException();
         }
@@ -77,39 +77,44 @@ namespace Slave
                 if (tuplesLists.Count == 2)
                     SlaveObj.BufferFirstOperatorLines = tuplesLists[1];
 
-                foreach (var l in tuplesLists[0])
-                {
-                    Console.WriteLine(l.Key + "||" + l.Value);
-                }
-
-                /*
                 // input via file
-                int packNumber = 0;
-                foreach (string s in tuples)
+                foreach (KeyValuePair<int,string> tuple in tuplesLists[1])
                 {
-                    ProcessRoutePack(new TuplePack(packNumber++, "File Imported", SplitTuple(s)));
+                    ProcessRoutePack(new TuplePack(tuple.Key, SlaveObj.Url, SplitTuple(tuple.Value)));
                 }
             }
             // upstream operator has sent a tuple
             else
             {
                 ProcessRoutePack(input);
-            }*/
             }
+            
         }
 
-        // Responsible to process and route the tuples
-        private void ProcessRoutePack(TuplePack input)
-        {
-            /*SleepInterval(SlaveObj.IntervalValue);
-            Console.WriteLine("Let's see if I have to process: " + input);
+         // Responsible to process and route the tuples
+         private void ProcessRoutePack(TuplePack input)
+         {
+             SleepInterval(SlaveObj.IntervalValue);
+             Console.WriteLine("Let's see if I have to process: " + input);
 
-            if (SlaveObj.SeenTuplePacks.Contains(input))
+            double baseExponent = SlaveObj.RandSeed.Next(10);
+            Dictionary<string, IList<TuplePack>> proposals;
+            // exponencial backoff
+             DateTime currentDate = DateTime.Now;
+            while ((proposals = TryToPurpose(currentDate, input)) == null)
             {
-                Console.WriteLine("I already seen that tuple!");
-                return;
+                Thread.Sleep(Convert.ToInt32((Math.Pow(2, baseExponent) - 1) / 2));
+                baseExponent += SlaveObj.RandSeed.Next(3);
             }
+             ChooseProposal(currentDate, proposals);
 
+
+             /*if (SlaveObj.SeenTuplePacks.Contains(input))
+             {
+                 Console.WriteLine("I already seen that tuple!");
+                 return;
+             }
+ 
             // Check if the tuple was already seen
             if (SlaveObj.Semantic.Equals("exactly-once"))
             {
@@ -133,9 +138,9 @@ namespace Slave
                         break;
                 }
             }
-
+ 
             IList<TuplePack> tuplesList = SlaveObj.ProcessObj.Process(input);
-           
+ 
             if (tuplesList != null)
             {
                 string processedTuples = string.Empty;
@@ -144,10 +149,10 @@ namespace Slave
                     tuplepack.OpUrl = SlaveObj.Url;
                     tuplepack.SeqNumber = SlaveObj.SeqNumber;
                     SlaveObj.SeqNumber++;
-
+ 
                     // Route
                     SlaveObj.RouteObj.Route(tuplepack);
-
+ 
                     // If I processed I have seen it
                     if (SlaveObj.Semantic.Equals("exactly-once")) {
                         SlaveObj.SeenTuplePacks.Add(input);
@@ -164,34 +169,99 @@ namespace Slave
                             }
                         }
                     }
-
+ 
                     ReplicaUpdate(SlaveObj.Url, tuplepack.Content);
                     // Debug purposes
                     processedTuples += tuplepack.Content.Count == 1 ? tuplepack.Content[0] + " " : MergeOutput(tuplepack.Content) + " ";
                 }
                 Console.WriteLine("Processed from: " + MergeOutput(input.Content) + " : " + processedTuples);
             }*/
-        }
+         }
 
         // if it there is someone that respondes false, then he is processing something
-        public override bool TryToPurpose(TuplePack input)
+        public Dictionary<string, IList<TuplePack>> TryToPurpose(DateTime x, TuplePack input)
         {
-            List<bool> purposed = new List<bool>();
+            // A node chooses to become the Leader and selects a sequence number x and 
+            // value v to create a proposal P1(x, v).It sends this proposal to the acceptors 
+            // and waits till a majority responds.
+
+            Dictionary<string,IList<TuplePack>> responses = new Dictionary<string, IList<TuplePack>>();
+
+            List<string> toRemove = new List<string>();
             foreach (string siblingUrl in SlaveObj.Siblings)
             {
                 try
                 {
-                    var replica = (ISibling)Activator.GetObject(typeof(ISibling), siblingUrl);
-                    purposed.Add(replica.Purpose(input));
+                    var replica = (ISibling) Activator.GetObject(typeof(ISibling), siblingUrl);
+                    responses[siblingUrl] = replica.Purpose(x, input);
                 }
                 // he is dead or slowed so it's opinion doens't count 
-                catch (Exception e) { }
+                catch (SocketException e)
+                {
+                    toRemove.Add(siblingUrl);
+                }
+                catch (Exception e)
+                {
+                    toRemove.Add(siblingUrl);
+                }
             }
-            // i am alone I can assume I am my own boss
-            if (purposed.Count == 0)
-                return false;
-            return !purposed.Contains(false);
+
+            // remove crashed replicas
+            foreach (var crashed in toRemove)
+            {
+                SlaveObj.Siblings.Remove(crashed);
+            }
+
+            // no responses abort
+            if (responses.Count == 0)
+                return null;
+
+            // check the reject responses
+            int rejects = 0;
+            foreach (var response in responses)
+            {
+                if (response.Value == null)
+                    rejects++;
+            }
+            if (rejects >= SlaveObj.Siblings.Count/2 + 1)
+                return null;
+
+            // check the non responds
+            if (responses.Count < SlaveObj.Siblings.Count/2 + 1)
+                return null;
+
+            // remove possible nulls
+            Dictionary<string, IList<TuplePack>> output = new Dictionary<string, IList<TuplePack>>();
+            foreach (var proposal in responses)
+            {
+                if (proposal.Value != null)
+                    output[proposal.Key] = proposal.Value;
+            }
+
+            return output;
         }
+
+        private TuplePack ChooseProposal(DateTime x, Dictionary<string, IList<TuplePack>> proposals, TuplePack toPropose)
+        {
+            foreach (var proposal in proposals)
+            {
+                foreach (TuplePack pack in proposal.Value)
+                {
+                    if (!SlaveObj.SeenTuplePacks.Contains(pack))
+                    {
+                        SlaveObj.SeenTuplePacks.Add(pack);
+                        if (SlaveObj.Stateful)
+                        {
+                            SlaveObj.ProcessObj.Process(pack);
+                        }
+
+                    }
+                }
+            }
+            return null;
+        }
+
+
 
         // Log the events
         public override void ReplicaUpdate(string replicaUrl, IList<string> tupleFields)
@@ -204,18 +274,18 @@ namespace Slave
             return SlaveObj.SeenTuplePacks.Contains(toRoute);
         }
 
-        public override void AnnounceTuple(TuplePack toAnnounce)
+        public override bool SendFinalProposal(DateTime x, TuplePack toPropose)
         {
-            if (!SlaveObj.SeenTuplePacks.Contains(toAnnounce))
+            if (!SlaveObj.SeenTuplePacks.Contains(toPropose))
             {
-                SlaveObj.SeenTuplePacks.Add(toAnnounce);
+                SlaveObj.SeenTuplePacks.Add(toPropose);
                 // if I belong to a operator that needs to mantain state I need to process
                 if (SlaveObj.Stateful)
-                    SlaveObj.ProcessObj.Process(toAnnounce);
+                    SlaveObj.ProcessObj.Process(toPropose);
             }
         }
 
-        public override bool Purpose(TuplePack toDispatch)
+        public override IList<TuplePack> Purpose(DateTime x, TuplePack toDispatch)
         {
             return Monitor.IsEntered(SlaveObj);
         }
@@ -230,7 +300,7 @@ namespace Slave
                 try
                 {
                     var replica = (ISibling) Activator.GetObject(typeof(ISibling), siblingUrl);
-                    replica.AnnounceTuple(toAnnounce);
+                    replica.SendFinalProposal(TODO, toAnnounce);
                     sucessfullySent.Add(siblingUrl);
                 }
                 // crashed - theres nothing we can do

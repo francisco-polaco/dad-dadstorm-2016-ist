@@ -1,4 +1,5 @@
-﻿using CommonTypes;
+﻿using System;
+using CommonTypes;
 using System.Collections.Generic;
 
 namespace Slave
@@ -24,10 +25,8 @@ namespace Slave
 
         public abstract bool PollTuple(TuplePack toRoute);
 
-        public abstract void AnnounceTuple(TuplePack toAnnounce);
+        public abstract bool SendFinalProposal(DateTime x, TuplePack toPropose);
   
-        public abstract bool Purpose(TuplePack toDispatch);
-
-        public abstract bool TryToPurpose(TuplePack purpose);
+        public abstract IList<TuplePack> Purpose(DateTime x, TuplePack toDispatch);
     }
 }
