@@ -91,6 +91,7 @@ namespace Slave
                 remoteDel.BeginInvoke(inputPack, null, null);
             else if(_semantic.Equals("exactly-once") || _semantic.Equals("at-least-once"))
             {
+                Console.WriteLine("Trying to send to : " + urls[index]);
                 remoteDel.BeginInvoke(
                     inputPack,
                     (IAsyncResult ar) =>

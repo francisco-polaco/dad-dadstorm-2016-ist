@@ -36,12 +36,12 @@ namespace Slave
             throw new NotImplementedException();
         }
 
-        public override bool SendFinalProposal(DateTime x, TuplePack toPropose)
+        public override bool SendFinalProposal(Proposal x1)
         {
             throw new NotImplementedException();
         }
 
-        public override IList<TuplePack> Purpose(DateTime x, TuplePack toDispatch)
+        public override Proposal Purpose(Proposal x1)
         {
             throw new NotImplementedException();
         }
@@ -179,13 +179,13 @@ namespace Slave
          }
 
         // if it there is someone that respondes false, then he is processing something
-        public Dictionary<string, IList<TuplePack>> TryToPurpose(DateTime x, TuplePack input)
+        public Dictionary<string, TuplePack> TryToPurpose(DateTime x, TuplePack input)
         {
             // A node chooses to become the Leader and selects a sequence number x and 
             // value v to create a proposal P1(x, v).It sends this proposal to the acceptors 
             // and waits till a majority responds.
 
-            Dictionary<string,IList<TuplePack>> responses = new Dictionary<string, IList<TuplePack>>();
+            Dictionary<string,TuplePack> responses = new Dictionary<string, TuplePack>();
 
             List<string> toRemove = new List<string>();
             foreach (string siblingUrl in SlaveObj.Siblings)
@@ -193,7 +193,7 @@ namespace Slave
                 try
                 {
                     var replica = (ISibling) Activator.GetObject(typeof(ISibling), siblingUrl);
-                    responses[siblingUrl] = replica.Purpose(x, input);
+                    responses[siblingUrl] = replica.Purpose(TODO);
                 }
                 // he is dead or slowed so it's opinion doens't count 
                 catch (SocketException e)
@@ -231,7 +231,7 @@ namespace Slave
                 return null;
 
             // remove possible nulls
-            Dictionary<string, IList<TuplePack>> output = new Dictionary<string, IList<TuplePack>>();
+            Dictionary<string, TuplePack> output = new Dictionary<string, TuplePack>();
             foreach (var proposal in responses)
             {
                 if (proposal.Value != null)
@@ -241,20 +241,16 @@ namespace Slave
             return output;
         }
 
-        private TuplePack ChooseProposal(DateTime x, Dictionary<string, IList<TuplePack>> proposals, TuplePack toPropose)
+        private TuplePack ChooseProposal(DateTime x, Dictionary<string, TuplePack> proposals, TuplePack toPropose)
         {
             foreach (var proposal in proposals)
             {
-                foreach (TuplePack pack in proposal.Value)
+                if (!SlaveObj.SeenTuplePacks.Contains(proposal.Value))
                 {
-                    if (!SlaveObj.SeenTuplePacks.Contains(pack))
+                    SlaveObj.SeenTuplePacks.Add(proposal.Value);
+                    if (SlaveObj.Stateful)
                     {
-                        SlaveObj.SeenTuplePacks.Add(pack);
-                        if (SlaveObj.Stateful)
-                        {
-                            SlaveObj.ProcessObj.Process(pack);
-                        }
-
+                        SlaveObj.ProcessObj.Process(proposal.Value);
                     }
                 }
             }
@@ -274,7 +270,7 @@ namespace Slave
             return SlaveObj.SeenTuplePacks.Contains(toRoute);
         }
 
-        public override bool SendFinalProposal(DateTime x, TuplePack toPropose)
+        public override bool SendFinalProposal(Proposal x1)
         {
             if (!SlaveObj.SeenTuplePacks.Contains(toPropose))
             {
@@ -285,9 +281,24 @@ namespace Slave
             }
         }
 
-        public override IList<TuplePack> Purpose(DateTime x, TuplePack toDispatch)
+        public override Proposal Purpose(Proposal x1)
         {
-            return Monitor.IsEntered(SlaveObj);
+            if (SlaveObj.PaxosAggreedProposals.Count == 0) return x1;
+            else if (!SlaveObj.PaxosAggreedProposals.Contains(x1)) return x1;
+            else
+            {
+                SlaveObj.PaxosAggreedProposals.Sort();
+                Proposal max = SlaveObj.PaxosAggreedProposals[SlaveObj.PaxosAggreedProposals.Count - 1];
+                if (x1.DateTime < max.DateTime) return new Proposal(max.DateTime, null);
+                else
+                {
+                    return max;
+                }
+
+                //compare x to the highest seq number proposal it has already agreed to, say P2(y, v2)
+                //If x < y, reply ‘reject’ along with y
+                //If x > y, reply ‘agree’ along with P2(y, v2)
+            }
         }
 
         public List<string> DestributeTuple(TuplePack toAnnounce, List<string> siblingsUrls)
@@ -300,7 +311,7 @@ namespace Slave
                 try
                 {
                     var replica = (ISibling) Activator.GetObject(typeof(ISibling), siblingUrl);
-                    replica.SendFinalProposal(TODO, toAnnounce);
+                    replica.SendFinalProposal(TODO);
                     sucessfullySent.Add(siblingUrl);
                 }
                 // crashed - theres nothing we can do

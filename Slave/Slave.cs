@@ -62,6 +62,13 @@ namespace Slave
         private string _semantic;
         private List<string> _siblings;
         private Dictionary<int, string> _bufferFirstOperatorLines;
+        private List<Proposal> _paxosAggreedProposals;
+
+        public List<Proposal> PaxosAggreedProposals
+        {
+            get { return _paxosAggreedProposals; }
+            set { _paxosAggreedProposals = value; }
+        }
 
         public Slave(Import importObj, Route routeObj, Process processObj, string url, string puppetMasterUrl, bool logLevel, string semantic, List<string> siblings, bool stateful)
         {
@@ -78,6 +85,7 @@ namespace Slave
             _siblings = siblings;
             _stateful = stateful;
             _rnd = new System.Random();
+            _paxosAggreedProposals = new List<Proposal>();
             init();
         }
 
@@ -321,14 +329,14 @@ namespace Slave
             return State.PollTuple(toRoute);
         }
 
-        public bool SendFinalProposal(DateTime x, TuplePack toPropose)
+        public bool SendFinalProposal(Proposal x1)
         {
-            State.SendFinalProposal(x, toPropose);
+            State.SendFinalProposal(x);
         }
 
-        public IList<TuplePack> Purpose(DateTime x, TuplePack toDispatch)
+        public Proposal Purpose(Proposal x1)
         {
-            return State.Purpose(x, toDispatch);
+            return State.Purpose(x);
         }
     }
 }

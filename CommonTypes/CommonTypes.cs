@@ -33,34 +33,34 @@ namespace CommonTypes
     public interface ISibling
     {
         bool PollTuple(TuplePack toRoute);
-        bool SendFinalProposal(DateTime x, TuplePack toPropose);
-        IList<TuplePack> Purpose(DateTime x, TuplePack toDispatch);
+        bool SendFinalProposal(Proposal x1);
+        Proposal Purpose(Proposal x1);
 
     }
 
-    /*
+    
     [System.Serializable]
     public class Proposal
     {
-        private bool _decision;
-        private IList<TuplePack> _proposals;
+        private DateTime _dateTime;
+        private TuplePack _proposal;
 
-        public Proposal(bool decision, IList<TuplePack> proposals)
+        public Proposal(DateTime dateTime, TuplePack proposal)
         {
-            _decision = decision;
-            _proposals = proposals;
+            _dateTime = dateTime;
+            _proposal = proposal;
         }
 
-        public bool Decision
+        public DateTime DateTime
         {
-            get { return _decision; }
+            get { return _dateTime; }
         }
 
-        public IList<TuplePack> Proposals
+        public TuplePack GetProposal
         {
-            get { return _proposals; }
+            get { return _proposal; }
         }
-    }*/
+    }
 
     [System.Serializable]
     public class TuplePack

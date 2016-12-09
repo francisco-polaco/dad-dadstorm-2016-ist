@@ -25,8 +25,8 @@ namespace Slave
 
         public abstract bool PollTuple(TuplePack toRoute);
 
-        public abstract bool SendFinalProposal(DateTime x, TuplePack toPropose);
+        public abstract bool SendFinalProposal(Proposal x1);
   
-        public abstract IList<TuplePack> Purpose(DateTime x, TuplePack toDispatch);
+        public abstract Proposal Purpose(Proposal x1);
     }
 }
