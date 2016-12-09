@@ -62,16 +62,27 @@ namespace Slave
         public override void Dispatch(TuplePack input)
         {
             // start command was issued || unfreeze happened
-            if (input == null) 
+            if (input == null)
             {
                 // try importing
-                List<string> tuples = SlaveObj.ImportObj.Import();
+                IList<Dictionary<int, string>> tuplesLists = SlaveObj.ImportObj.Import();
 
                 // input comes from upstream operator (via routing) || 
                 // already imported my tuples and I got unfrozen
-                if (tuples == null) 
+                if (tuplesLists == null)
                     return;
 
+                // first list my tuples
+                // second list siblings tuples
+                if (tuplesLists.Count == 2)
+                    SlaveObj.BufferFirstOperatorLines = tuplesLists[1];
+
+                foreach (var l in tuplesLists[0])
+                {
+                    Console.WriteLine(l.Key + "||" + l.Value);
+                }
+
+                /*
                 // input via file
                 int packNumber = 0;
                 foreach (string s in tuples)
@@ -83,13 +94,14 @@ namespace Slave
             else
             {
                 ProcessRoutePack(input);
+            }*/
             }
         }
 
         // Responsible to process and route the tuples
         private void ProcessRoutePack(TuplePack input)
         {
-            SleepInterval(SlaveObj.IntervalValue);
+            /*SleepInterval(SlaveObj.IntervalValue);
             Console.WriteLine("Let's see if I have to process: " + input);
 
             if (SlaveObj.SeenTuplePacks.Contains(input))
@@ -158,7 +170,7 @@ namespace Slave
                     processedTuples += tuplepack.Content.Count == 1 ? tuplepack.Content[0] + " " : MergeOutput(tuplepack.Content) + " ";
                 }
                 Console.WriteLine("Processed from: " + MergeOutput(input.Content) + " : " + processedTuples);
-            }
+            }*/
         }
 
         // if it there is someone that respondes false, then he is processing something

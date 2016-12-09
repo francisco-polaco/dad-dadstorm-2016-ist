@@ -7,18 +7,21 @@ namespace Slave
         /// <summary>
         /// </summary>
         /// <param name="specs">
-        /// specs[0] = type of processing operator
-        /// inputs = string[] inputs
-        /// filePaths = string[] filePaths
+        ///     specs[0] = type of processing operator
+        ///     specs[1] = routing type
+        ///     specs[2] = field
+        ///     filePaths = string[] filePaths
+        ///     replicaNumber && total = used to route for the first operator
         /// </param>
+        /// <param name="filePaths"></param>
+        /// <param name="replicaNumber"></param>
+        /// <param name="total"></param>
         /// <returns></returns>
-        public override Import GetImport(string[] specs, string[] inputs, string[] filePaths)
+        public override Import GetImport(string[] specs, string[] filePaths, int replicaNumber, int total)
         {
             string operatorType = specs[0];
-            if (operatorType.ToLower().Equals("input"))
-                return new Input(inputs);
             if (operatorType.ToLower().Equals("fileimport"))
-                return new FileImport(filePaths);
+                return specs.Length == 3 ? new FileImport(filePaths, specs[1], specs[2], replicaNumber, total) : new FileImport(filePaths, specs[1], "0", replicaNumber, total);
             if (operatorType.ToLower().Equals("opimport"))
                 return new OpImport();
             return null;
@@ -37,7 +40,7 @@ namespace Slave
 
     public class ProcessingFactory : AbstractFactory
     {
-        public override Import GetImport(string[] specs, string[] inputs, string[] filePaths)
+        public override Import GetImport(string[] specs, string[] filePaths, int replicaNumber, int total)
         {
             return null;
         }
@@ -75,7 +78,7 @@ namespace Slave
 
     public class RoutingFactory : AbstractFactory
     {
-        public override Import GetImport(string[] specs, string[] inputs, string[] filePaths)
+        public override Import GetImport(string[] specs, string[] filePaths, int replicaNumber, int total)
         {
             return null;
         }

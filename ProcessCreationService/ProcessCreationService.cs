@@ -76,7 +76,7 @@ namespace ProcessCreationService
             {
                 if (importTokens[i].StartsWith("OP")) // input comes from operator
                 {
-                    importObj = importFactory.GetImport(new string[] { "OpImport" }, null, null);
+                    importObj = importFactory.GetImport(new string[] { "OpImport" }, null, 0, 0);
                     break; // assuming only one operator
                 }
                 if (importTokens[i].Contains(".")) { // input comes from file
@@ -85,9 +85,6 @@ namespace ProcessCreationService
                 else
                     Console.WriteLine("Neither operator nor input file!!!");
             }
-
-            if(!firstOP && filePathsList.Count != 0)
-                importObj = importFactory.GetImport(new string[] { "FileImport" }, null, filePathsList.ToArray());
 
             /*** create routing object ***/
             AbstractFactory routingFactory = new RoutingFactory();
@@ -117,21 +114,27 @@ namespace ProcessCreationService
 
             processObj = processingFactory.GetProcessing(processingTokens);
 
- 
             string[] plainUrls = urls.ToArray().Where(s => s != String.Empty).ToArray<string>();
 
-            IDictionary<string, List<string>> tuplesInput = null;
-            if (firstOP)
-                tuplesInput = ProcessInputFiles(input.RoutingTypeToReadFromFile, urls, filePathsList.ToArray());
-
+            bool wasNull = importObj == null;
             foreach (string url in plainUrls) {
-                if (firstOP)
-                    importObj = importFactory.GetImport(new string[] { "Input" }, tuplesInput[url].ToArray(), null);
+                if(wasNull)
+                {
+                    // tokenize routing policy for the first operator
+                    string[] merge = firstOP ? FileImportRouting(input.RoutingTypeToReadFromFile) : FileImportRouting(input.RoutingType);
+                    // supports both import in the beginning or in the middle
+                    if (input.RoutingType != null)
+                        importObj = importFactory.GetImport(merge, filePathsList.ToArray(),
+                            plainUrls.ToList().IndexOf(url), plainUrls.Length);
+                    else
+                        importObj = importFactory.GetImport(new string[] {"FileImport", "primary"}, filePathsList.ToArray(), plainUrls.ToList().IndexOf(url), plainUrls.Length);
+                }
 
                 System.Diagnostics.Process.Start(@"Slave.exe", SerializeObject(importObj) + " " + SerializeObject(routeObj) + " " +
                     SerializeObject(processObj) + " " + SerializeObject(url) + " " + SerializeObject(input.PuppetMasterUrl) + " " +
                     SerializeObject(input.IsLogFull) + " " + SerializeObject(input.Semantic.ToLower()) + " " + 
                     SerializeObject(getSiblings(plainUrls,url)) + " " + SerializeObject(_stateful));
+ 
             }
         }
 
@@ -140,6 +143,19 @@ namespace ProcessCreationService
             if (processingToken.ToLower().Equals("uniq") || processingToken.ToLower().Equals("count"))
                 return true;
             return false;
+        }
+
+        private string[] FileImportRouting(string routing)
+        {
+            string rp = @"[)(\s]";
+            string[] rt = Regex.Split(routing, rp).Where(s => s != String.Empty).ToArray<string>();
+            string[] merge = new string[rt.Length + 1];
+
+            merge[0] = "FileImport";
+            for (int i = 0; i < rt.Length; i++)
+                merge[i+1] = rt[i];
+
+            return merge;
         }
 
         private string SerializeObject(object o)
@@ -154,71 +170,6 @@ namespace ProcessCreationService
                 new BinaryFormatter().Serialize(stream, o);
                 return Convert.ToBase64String(stream.ToArray());
             }
-        }
-
-        /// <summary>
-        /// Function used to simulate the pseudo-first operator of importing
-        /// </summary>
-        /// <param name="routeType"></param>
-        /// <param name="urls"></param>
-        /// <param name="paths"></param>
-        /// <returns></returns>
-        private IDictionary<string, List<string>> ProcessInputFiles(string routeType, List<string> urls, string[] paths)
-        {
-            List<string> input = InputImport(paths);
-            IDictionary<string, List<string>> output = new Dictionary<string, List<string>>();
-
-            // tokenize routing policy
-            string routingPattern = @"[)(\s]";
-            string[] routingTokens = Regex.Split(routeType, routingPattern).Where(s => s != String.Empty).ToArray<string>();
-
-            foreach (var url in urls)
-            {
-                KeyValuePair<string, List<string>> pair = new KeyValuePair<string, List<string>>(url, new List<string>());
-                output.Add(pair);
-            }
-
-            System.Random rnd = new System.Random();
-            foreach (string tuple in input)
-            {
-                int index;
-                if (routingTokens[0].Equals("random"))
-                { 
-                    // rnd.Next(replica.Count) - number between [0;urls.count[
-                    index = rnd.Next(urls.Count);
-                }
-                else if (routingTokens[0].Equals("hashing"))
-                {
-                    index = urls.Count != 0 ? tuple.GetHashCode() % urls.Count : 0;
-                    // modulus operation
-                    if (index < 0)
-                        index += urls.Count;
-                }
-                else
-                    index = 0;
-                output[urls[index]].Add(tuple);
-            }
-            return output;
-        }
-
-        private List<string> InputImport(string[] filePaths)
-        {
-            string tuple;
-            List<string> tuples = new List<string>();
-            System.IO.StreamReader file;
-            foreach (string path in filePaths)
-            {
-                if(path.Contains(":")) file = new System.IO.StreamReader(@path); //probably absolute path
-                else file = new System.IO.StreamReader(Environment.CurrentDirectory + @"\..\..\..\Inputs\" + path);
-                while ((tuple = file.ReadLine()) != null)
-                {
-                    if (tuple.StartsWith("%%"))
-                        continue;
-                    tuples.Add(tuple);
-                }
-                file.Close();
-            }
-            return tuples;
         }
 
         private List<string> getSiblings(string[] opReplicasUrls, string myself)
