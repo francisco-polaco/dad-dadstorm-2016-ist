@@ -11,6 +11,17 @@
 \usepackage{latex8}
 \usepackage{times}
 \usepackage[utf8]{inputenc}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage[labelfont=bf]{caption}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\hypersetup{
+    colorlinks=false,
+    pdfborder={0 0 0},
+}
+
 %\documentstyle[times,art10,twocolumn,latex8]{article}
 
 %------------------------------------------------------------------------- 
@@ -63,50 +74,94 @@ manuscript to the IEEE Computer Society Press. Note there have
 been some changes to the measurements from previous instructions. 
 
 %------------------------------------------------------------------------- 
-\Section{Instructions}
+\Section{Design}
 
-Please read the following carefully.
+One of the key aspects of every solution is its design, especially in distributed systems. So, having a good design was a top priority for us. Our design provides a highly flexible and scalable environment, which adapts to every need.
 
-%------------------------------------------------------------------------- 
-\SubSection{Language}
-
-All manuscripts must be in English.
+First, we will discuss the components of the system, their roles and modules. Then we will dive into the relations between them. Present the must relevant architecture and finish with a brief overview.
 
 %------------------------------------------------------------------------- 
-\SubSection{Printing your paper}
+\SubSection{Components}
 
-Print your properly formatted text on high-quality, $8.5 \times 11$-inch 
-white printer paper. A4 paper is also acceptable, but please leave the 
-extra 0.5 inch (1.27 cm) at the BOTTOM of the page.
+Our system is divided in four main components, which are the Puppet Master, Process Creation Service, Slave and Common Types.
+
+\subsubsection{Roles}
+
+\textbf{Puppet Master}. imports the configuration file, arranges the information and sends it to the Process Creation Service. After that, its only job is to log and serve as a command line.
+
+\textbf{Process Creation Service (PCS)}. responsible for ordering the creation of the slaves, i.e. the replicas and for feeding the first tuples into the first operator. In some sense, the process creation service is just a simple parser.
+
+\textbf{Slave}. in charge of the actual processing of the tuples. The processing happens in three, totally decoupled, phases: importing, processing and routing. 
+
+\textbf{Common Types}. a shared library between the different components. Which, defines the interfaces and specialized objects for data transfers.
+
 
 %------------------------------------------------------------------------- 
-\SubSection{Margins and page numbering}
 
-All printed material, including text, illustrations, and charts, must be 
-kept within a print area 6-7/8 inches (17.5 cm) wide by 8-7/8 inches 
-(22.54 cm) high. Do not write or print anything outside the print area. 
-Number your pages lightly, in pencil, on the upper right-hand corners of 
-the BACKS of the pages (for example, 1/10, 2/10, or 1 of 10, 2 of 10, and 
-so forth). Please do not write on the fronts of the pages, nor on the 
-lower halves of the backs of the pages.
+\subsubsection{Modules}
+
+In this section we will approach which units of implementation - modules - are the components of the system composed of.
+
+The Puppet Master, has the following modules: 
+
+\textbf{Logger}. logs the events received by the slaves.
+
+\textbf{Operator \& Proxies}. the operator is a composition of proxies. Each proxy is a remote object of a slave, which we use to send commands, assynchrounsly, after their creation.
+
+\textbf{Config File Processor}. reads the configuration file and parses it into chunks of information which we send to the PCS.
+
+The Slave, has the following modules:
+
+\textbf{Importer}. source of the tuples. We can destinguish three importing types: Input, File and Operator imports. The difference between Input and File Import is that the first one is only used for the first operator of the chain, since its data comes from the PCS. This decision came because of the random policy for importing, we wanted to be sure that all the tuples were imported. The Operator import represents an operator that receives its input from a upstream operator.
+
+\textbf{Processor}. given a tuple applies the domain logic. There are two types of processors: the stateless and stateful. The stateless, are composed by the Dup, Filter and Custom. The stateful, have the Uniq and Count. Its logic is described in the project description.
+
+\textbf{Routing}. routes the processed tuple. There are four different types of routing: Primary, Random, Hashing and Output. The first three obey the domain logic. The last one came from the necessity of outputting the resulting tuples, in the last operator, into a file. 
+
+Note that the PCS and Common Types aren't composed of modules, due to their simplicity.
+
+
+%------------------------------------------------------------------------- 
+\SubSection{Relations}
+
+The flow begins with the Puppet Master when he loads the configuration file. After loading it, the Puppet Master orders the PCS to create the operators and their respective replicas. When the PCS finishes, the Puppet Master starts sending commands to the Slaves. The Slaves, according to the required characteristics of the system do their work in a pipe-and-filter manner, notifying the Puppet Master Logger when they do something.
 
 
 %------------------------------------------------------------------------ 
-\SubSection{Formatting your paper}
+\SubSection{Architecture}
 
-All text must be in a two-column format. The total allowable width of 
-the text area is 6-7/8 inches (17.5 cm) wide by 8-7/8 inches (22.54 cm) 
-high. Columns are to be 3-1/4 inches (8.25 cm) wide, with a 5/16 inch 
-(0.8 cm) space between them. The main title (on the first page) should 
-begin 1.0 inch (2.54 cm) from the top edge of the page. The second and 
-following pages should begin 1.0 inch (2.54 cm) from the top edge. On 
-all pages, the bottom margin should be 1-1/8 inches (2.86 cm) from the 
-bottom edge of the page for $8.5 \times 11$-inch paper; for A4 paper, 
-approximately 1-5/8 inches (4.13 cm) from the bottom edge of the page.
+In the following section we pretend to expose the qualities of our solution. Note that the diagrams that will be presented are not complete, attribute or operation wise to simplify.
+
+As we talked the importing, processing and routing are totally decoupled. In order to achieve that, we used a \textbf{Abstract Factory Pattern}, which allows us to create different specialized factories to fit our needs. So to create a replica we just need to "ask" each factory for a concrete type, forming any combination of Slaves that we would like. This approach gives us \textbf{plenty of flexibility}, as shown in \textbf{~\cref{fig:factories}}. So imagine that you want to create a Slave that imports from another operator, processes with uniq and routes for a file. You just have to tell the importing factory to give you a OpImport, the processing factory to give you a Uniq and finally the routing factory to give a Output.
+
+\begin{figure}[h]
+\centering
+	\includegraphics[scale=0.35]{"Architecture/Factories"}
+    \caption{The different factories used to create the replicas. } 
+    \label{fig:factories}
+\end{figure}
+
+Another important aspect of our design is how the Slave operates under different states. As we know, there are, currently, on the project the Freeze and Unfrozen states. Depending on the state, the Slave should behave differently. To achieve such aim dynamically and in a scalable fashion, we used the \textbf{State Pattern} \textbf{~\cref{fig:state}}. With this style we do not need to worry about the logic of the operations, since its behaviour is decided on runtime, according to whatever the Puppet Master "throws" at us.
+
+
+\begin{figure}[h]
+\centering
+	\includegraphics[scale=0.45]{"Architecture/State"}
+    \caption{The different states.} 
+    \label{fig:state}
+\end{figure}
+
+
+It is worth mentioning that in the Puppet Master the Logger being a separated module, unburdens the Puppet Master of that "tedious job" allowing it to process the commands given to him, i.e. does not freeze the UI, which allows to achieve the interactive model - command line.
 
 %------------------------------------------------------------------------- 
-\SubSection{Type-style and fonts}
+\SubSection{Overview}
 
+
+
+
+%------------------------------------------------------------------------- 
+\SubSection{Nop}
 Wherever Times is specified, Times Roman may also be used. If neither is 
 available on your word processor, please use the font closest in 
 appearance to Times that you have access to.
@@ -154,7 +209,7 @@ should be Times 11-point boldface, initially capitalized, flush left,
 with one blank line before, and one after. If you require a third-order 
 heading (we discourage it), use 10-point Times, boldface, initially 
 capitalized, flush left, preceded by one blank line, followed by a period 
-and your text on the same line.
+and your text on the same line..
 
 %------------------------------------------------------------------------- 
 \SubSection{Footnotes}
