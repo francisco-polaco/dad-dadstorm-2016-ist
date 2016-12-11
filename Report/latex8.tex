@@ -64,12 +64,18 @@
 %------------------------------------------------------------------------- 
 \Section{Introduction}
 
-Stream processing consist in given a sequence of data apply a set of operations to it. When we take
-this to a distributed level other problems, like crashes, can appear, so it is required to ensure the correctness of the computation.
+Stream processing consist in given a sequence of data (tuples in our case) and apply a set of operations to it. When we take this to a distributed level other problems, like crashes, can appear,
+ so it is required to ensure the correctness of the computation by using algorithms that apply fault-tolerant semantics.
+ 
+ Some concepts that are needed to understand our work are explain in the subsections. To facilitate the apprehension we will apply a metaphor, in which we will pretend that we have a factory, where we receive a raw material, work on that and produce something new. 
+ 
+ \subsection{Replica}
+ A \textbf{Replica} or as we called them in the \textbf{Design} section, a \textbf{Slave}, is the most basic unit of our system. It is manly responsible to execute an operations over a set of tuples. They also are used to ensure replication and fault-tolerant properties. In our metaphor, this concept are mapped as assembly lines, where every line does the same, and if some stops, the others assure that the work is done.
+ 
+ \subsection{Operator}
+ An \textbf{Operator} is a set of \textbf{Replicas} that do the same operation. This set is responsible to tolerate faults within it self. In our metaphor, we mapped this concept, as the factory it self, where it receives tuples, process them and produce new tuples.
 
-Please follow the steps outlined below when submitting your 
-manuscript to the IEEE Computer Society Press. Note there have 
-been some changes to the measurements from previous instructions. 
+
 
 %------------------------------------------------------------------------- 
 \Section{Design}
@@ -85,13 +91,13 @@ Our system is divided in four main components, which are the Puppet Master, Proc
 
 \subsubsection{Roles}
 
-\textbf{Puppet Master}. imports the configuration file, arranges the information and sends it to the Process Creation Service. After that, its only job is to log and serve as a command line.
+\textbf{Puppet Master} reads the configuration file, processes it and sends the needed commands to the Process Creation Service of each machine. After that, it will only collect logs from all replicas and serve as a command prompt. It basically is a graphical interface where we can easily bootstrap, monitor and manipulate the system.
 
-\textbf{Process Creation Service (PCS)}. responsible for ordering the creation of the slaves, i.e. the replicas and for feeding the first tuples into the first operator. In some sense, the process creation service is just a simple parser.
+\textbf{Process Creation Service (PCS)} is responsible for ordering the creation of slaves, i.e. the replicas and for feeding the first tuples into the first operator. In some sense, the process creation service is just a simple parser.
 
-\textbf{Slave}. in charge of the actual processing of the tuples. The processing happens in three, totally decoupled, phases: importing, processing and routing. 
+\textbf{Slave} is in charge of the actual processing of the tuples. The processing happens in three, totally decoupled phases: importing, processing and routing. 
 
-\textbf{Common Types}. a shared library between the different components. Which, defines the interfaces and specialized objects for data transfers.
+\textbf{Common Types} is a shared library between the different components. Which, defines the interfaces and specialized objects for data transfers.
 
 
 %------------------------------------------------------------------------- 
@@ -102,15 +108,15 @@ In this section we will approach which units of implementation - modules - are t
 
 The Puppet Master, has the following modules: 
 
-\textbf{Logger}. logs the events received by the slaves.
+\textbf{Logger}: logs the events, received from the slaves, by writing it to the screen and to a file.
 
-\textbf{Operator \& Proxies}. the operator is a composition of proxies. Each proxy is a remote object of a slave, which we use to send commands, assynchrounsly, after their creation.
+\textbf{Operator \& Proxies}: the operator is a composition of proxies. Each proxy is a remote object of a slave, which we use to send commands, asynchronously, after their creation.
 
-\textbf{Config File Processor}. reads the configuration file and parses it into chunks of information which we send to the PCS.
+\textbf{Configuration File Processor}: reads the configuration file and parses it into chunks of information which we send to the PCS.
 
 The Slave, has the following modules:
 
-\textbf{Importer}. source of the tuples. We can destinguish three importing types: Input, File and Operator imports. The difference between Input and File Import is that the first one is only used for the first operator of the chain, since its data comes from the PCS. This decision came because of the random policy for importing, we wanted to be sure that all the tuples were imported. The Operator import represents an operator that receives its input from a upstream operator.
+\textbf{Importer}. source of the tuples. We can distinguish three importing types: Input, File and Operator imports. The difference between Input and File Import is that the first one is only used for the first operator of the chain, since its data comes from the PCS. This decision came because of the random policy for importing, we wanted to be sure that all the tuples were imported. The Operator import represents an operator that receives its input from a upstream operator.
 
 \textbf{Processor}. given a tuple applies the domain logic. There are two types of processors: the stateless and stateful. The stateless, are composed by the Dup, Filter and Custom. The stateful, have the Uniq and Count. Its logic is described in the project description.
 
@@ -139,7 +145,7 @@ As we talked the importing, processing and routing are totally decoupled. In ord
     \label{fig:factories}
 \end{figure}
 
-Another important aspect of our design is how the Slave operates under different states. As we know, there are, currently, on the project the Freeze and Unfrozen states. Depending on the state, the Slave should behave differently. To achieve such aim dynamically and in a scalable fashion, we used the \textbf{State Pattern} \textbf{~\cref{fig:state}}. With this style we do not need to worry about the logic of the operations, since its behaviour is decided on runtime, according to whatever the Puppet Master "throws" at us.
+Another important aspect of our design is how the Slave operates under different states. As we know, there are, currently, on the project the Freeze and Unfrozen states. Depending on the state, the Slave should behave differently. To achieve such aim dynamically and in a scalable fashion, we used the \textbf{State Pattern} \textbf{~\cref{fig:state}}. With this style we do not need to worry about the logic of the operations, since its behavior is decided on runtime, according to whatever the Puppet Master "throws" at us.
 
 
 \begin{figure}[h]
