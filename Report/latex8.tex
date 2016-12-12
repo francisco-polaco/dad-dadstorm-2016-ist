@@ -54,7 +54,7 @@
 \thispagestyle{empty}
 
 \begin{abstract}
-	Stream processing as become popular, so it is normal that there is a lot of technologies out there concerning it.
+	Stream processing as become popular, so it is normal that there is a lot of technologies out there dealing with it, like Apache Spark.
 	The scope of our work is to design and implement a simplified distributed fault-tolerant stream processing system, for education purposes only.
 	In our system, the programmer can, very easily, write a configuration file and some custom functions, to give his program the correct semantic while running on top of our platform.
 \end{abstract}
@@ -270,18 +270,67 @@ pressure-sensitive (self-adhesive) rub-on symbols or letters (available
 in most stationery stores, art stores, or graphics shops).
 
 %------------------------------------------------------------------------ 
-\SubSection{Copyright forms}
+\section{Evaluation}
 
-You must include your signed IEEE copyright release form when you submit 
-your finished paper. We MUST have this form before your paper can be 
-published in the proceedings.
+We setup some configuration files in order to test our system. Each test 
+has a specific focus, for instance we evaluate if a stream reach the end even when 
+a replica crashes.
+
+All the following tests were ran in the three possible semantics, however we focus more on the at-least-once semantic, since is not trivial to implement and on the exactly-once semantic, because is the most difficult to implement. Note that at-most-once semantic does not even assure that a tuple will reach the end, or that the operators have their state synchronized, so it will not be shown in detail like the others. 
+
+Also, before reaching to the critical point, we assured that all tested had tuples that would make the operator do something instead of a trivial case, where it would do nothing.
+
+\subsection{Environment Setup}
+Since we want people to be able to reproduce these tests, we present our environment setup. Every test
+was ran locally, since we didn't had the resources to have various Windows machines in the same network.
+
+Our environment was:
+\begin{itemize}
+	\item Windows 10 Pro x64
+	\item Intel Core i7-6700HQ @ 2.60GHz
+	\item 16 GB DDR4 RAM
+	\item Microsoft Visual Studio Enterprise 2015
+	\item Microsoft .NET Framework 4.5.2
+\end{itemize}
+\subsection{State Synchronization}
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.32]{"Tests/first"}
+	\caption{State Synchronization Test} 
+	\label{fig:state}
+\end{figure}
+	
+In this test, we hoped to verify if the state was being synchronized in the second operator since we froze replica 0 and some 7 seconds after we unfreeze it. 
+
+This test does not have any semantic per se, however the objective was to check if there was any tuple in the output with same user.
+
+\subsubsection{at-least-once semantic}
+All the tuples reach the end, sometimes in duplicated. This happens because we send the tuples to replica 0 of operator 2, but it is frozen. Since operator 1 does not receive an \textit{ACK}, it resends to other replica. Later, when replica 0 is unfrozen, it will process everything, which will result in duplicated tuples.
+
+\subsubsection{exactly-once semantic}
+Here the output will be slower, as it is expected, since siblings are asked if a tuple was seen. Nevertheless, even with the frozen period outputs what should output if no failure had occur.
+
+\subsection{Example in the project description}
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.22]{"Tests/second"}
+	\caption{Crash Test} 
+	\label{fig:state}
+\end{figure}
+
+In this test, we wanted to check if we were able to keep the semantics with more operators and by  crashing a replica. This test should output the number of user that had contact with a post related with \textit{"www.tecnico.ulisboa.pt"}.
+
+\subsubsection{at-least-once semantic}
+Again all the tuples reach the end, sometimes in duplicated.
+
+\subsubsection{exactly-once semantic}
+Every tuple reach the end, as if crashes or freezes had not occur.
+
 
 %------------------------------------------------------------------------- 
-\SubSection{Conclusions}
+\section{Conclusions}
 
-Please direct any questions to the production editor in charge of these 
-proceedings at the IEEE Computer Society Press: Phone (714) 821-8380, or 
-Fax (714) 761-1784.
+Somos um gajos fixes e sexys :D
 
 %------------------------------------------------------------------------- 
 \nocite{ex1,ex2}
