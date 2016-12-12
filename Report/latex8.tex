@@ -82,7 +82,7 @@ Stream processing consist in given a sequence of data (tuples in our case) and a
 
 One of the key aspects of every solution is its design, especially in distributed systems. So, having a good design was a top priority for us. Our design provides a highly flexible and scalable environment, which adapts to every need.
 
-First, we will discuss the components of the system, their roles and modules. Then we will dive into the relations between them. Present the must relevant architecture and finish with a brief overview.
+First, we will discuss the components of the system, their roles and modules. Then we will dive into the interactions between them. Present the most relevant architecture and finish with a brief overview.
 
 %------------------------------------------------------------------------- 
 \SubSection{Components}
@@ -91,13 +91,14 @@ Our system is divided in four main components, which are the Puppet Master, Proc
 
 \subsubsection{Roles}
 
-\textbf{Puppet Master} reads the configuration file, processes it and sends the needed commands to the Process Creation Service of each machine. After that, it will only collect logs from all replicas and serve as a command prompt. It basically is a graphical interface where we can easily bootstrap, monitor and manipulate the system.
+\textbf{Puppet Master}: reads the configuration file, processes it and sends the needed commands to the Process Creation Service of each machine. After that, it will only collect logs from all replicas and serve as a command prompt. It basically is a graphical interface where we can easily bootstrap, monitor and manipulate the system.
 
-\textbf{Process Creation Service (PCS)} is responsible for ordering the creation of slaves, i.e. the replicas and for feeding the first tuples into the first operator. In some sense, the process creation service is just a simple parser.
+\textbf{Process Creation Service (PCS)}: responsible for ordering the creation of the slaves, i.e. the replicas and for feeding the first tuples into the first operator. In some sense, the process creation service is just a simple parser.
 
-\textbf{Slave} is in charge of the actual processing of the tuples. The processing happens in three, totally decoupled phases: importing, processing and routing. 
+\textbf{Slave}: in charge of the actual processing of the tuples. The processing happens in three, totally decoupled, phases: importing, processing and routing. 
 
-\textbf{Common Types} is a shared library between the different components. Which, defines the interfaces and specialized objects for data transfers.
+\textbf{Common Types}: a shared library between the different components. Which, defines the interfaces and specialized objects for data transfers.
+
 
 
 %------------------------------------------------------------------------- 
@@ -116,160 +117,147 @@ The Puppet Master, has the following modules:
 
 The Slave, has the following modules:
 
-\textbf{Importer}. source of the tuples. We can distinguish three importing types: Input, File and Operator imports. The difference between Input and File Import is that the first one is only used for the first operator of the chain, since its data comes from the PCS. This decision came because of the random policy for importing, we wanted to be sure that all the tuples were imported. The Operator import represents an operator that receives its input from a upstream operator.
+\textbf{Importer}: source of the tuples. We can distinguish three importing types: Input, File and Operator imports. The difference between Input and File imports is that the first is only used for the first operator of the chain, since its data comes from the PCS. This decision emerged because of the need to be sure that all the tuples were imported in the presence of a random importing policy. 
 
-\textbf{Processor}. given a tuple applies the domain logic. There are two types of processors: the stateless and stateful. The stateless, are composed by the Dup, Filter and Custom. The stateful, have the Uniq and Count. Its logic is described in the project description.
+The Operator import represents an operator that receives its input from a upstream operator.
 
-\textbf{Routing}. routes the processed tuple. There are four different types of routing: Primary, Random, Hashing and Output. The first three obey the domain logic. The last one came from the necessity of outputting the resulting tuples, in the last operator, into a file. 
+\textbf{Processor}: given a tuple applies the domain logic. There are two types of processors: the stateless and stateful. The stateless, are composed by the Dup, Filter and Custom. The stateful, have the Uniq and Count. Its logic is described in the project description.
+
+\textbf{Routing}: routes the processed tuple. There are four different types of routing: Primary, Random, Hashing and Output. The first three obey the domain logic. The last one came from the necessity of outputting the resulting tuples, in the last operator, into a file. 
 
 Note that the PCS and Common Types aren't composed of modules, due to their simplicity.
 
-
 %------------------------------------------------------------------------- 
-\SubSection{Relations}
 
-The flow begins with the Puppet Master when he loads the configuration file. After loading it, the Puppet Master orders the PCS to create the operators and their respective replicas. When the PCS finishes, the Puppet Master starts sending commands to the Slaves. The Slaves, according to the required characteristics of the system do their work in a pipe-and-filter manner, notifying the Puppet Master Logger when they do something.
+\SubSection{Interactions}
+
+The flow begins with the Puppet Master when he loads the configuration file. After loading it, the Puppet Master orders the PCS to create the operators and their respective Slaves. When the PCS finishes, the Puppet Master starts sending commands to the Slaves. The Slaves, according to the required characteristics of the system do their work in a pipe-and-filter manner, notifying the Puppet Master Logger when they finish work or when they are asked to.
 
 
 %------------------------------------------------------------------------ 
 \SubSection{Architecture}
 
-In the following section we pretend to expose the qualities of our solution. Note that the diagrams that will be presented are not complete, attribute or operation wise to simplify.
+In the following section we pretend to expose the qualities of our solution. Note that the diagrams presented are not complete, attribute or operation wise for simplicity.
 
-As we talked the importing, processing and routing are totally decoupled. In order to achieve that, we used a \textbf{Abstract Factory Pattern}, which allows us to create different specialized factories to fit our needs. So to create a replica we just need to "ask" each factory for a concrete type, forming any combination of Slaves that we would like. This approach gives us \textbf{plenty of flexibility}, as shown in \textbf{~\cref{fig:factories}}. So imagine that you want to create a Slave that imports from another operator, processes with uniq and routes for a file. You just have to tell the importing factory to give you a OpImport, the processing factory to give you a Uniq and finally the routing factory to give a Output.
-
-\begin{figure}[h]
-\centering
-	\includegraphics[scale=0.35]{"Architecture/Factories"}
-    \caption{The different factories used to create the replicas. } 
-    \label{fig:factories}
-\end{figure}
-
-Another important aspect of our design is how the Slave operates under different states. As we know, there are, currently, on the project the Freeze and Unfrozen states. Depending on the state, the Slave should behave differently. To achieve such aim dynamically and in a scalable fashion, we used the \textbf{State Pattern} \textbf{~\cref{fig:state}}. With this style we do not need to worry about the logic of the operations, since its behavior is decided on runtime, according to whatever the Puppet Master "throws" at us.
-
+As we talked before, the importing, processing and routing are totally decoupled. In order to achieve that, we used a \textbf{Abstract Factory Pattern}, which allows us to create different specialized factories to fit our needs. So to create a Slave we just need to "ask" each factory for a concrete type, forming any combination of Slaves that we would like. This approach gives us \textbf{plenty of flexibility}, as shown in \textbf{~\cref{fig:factories}}. As an example, imagine that you want to create a Slave that imports from another operator, processes with uniq and routes for a file. You just have to tell the importing factory to give you a OpImport, the processing factory to give you a Uniq and finally the routing factory to give you a Output. Then you just need to create the Slave with those.
 
 \begin{figure}[h]
-\centering
-	\includegraphics[scale=0.45]{"Architecture/State"}
-    \caption{The different states.} 
-    \label{fig:state}
+	\centering
+	\includegraphics[angle=0, scale=0.35]{"Architecture/Factories"}
+	\caption{The different factories used to create the slaves. } 
+	\label{fig:factories}
+\end{figure}
+
+Another important aspect of our design is how the Slave operates under different states. As we know, there are, currently, on the project the Freeze and Unfrozen states. Depending on the state, the Slave should behave differently. To achieve such aim dynamically and in a scalable fashion, we used the \textbf{State Pattern} \textbf{~\cref{fig:state}}. With this approach, we do not need to worry about the logic of the operations, since its behavior is decided on runtime.
+
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[angle=0, scale=0.45]{"Architecture/State"}
+	\caption{The different states.} 
+	\label{fig:state}
 \end{figure}
 
 
-It is worth mentioning that in the Puppet Master the Logger being a separated module, unburdens the Puppet Master of that "tedious job" allowing it to process the commands given to him, i.e. does not freeze the UI, which allows to achieve the interactive model - command line.
+To finish, is worth mentioning that in the Puppet Master the Logger being a separated module, unburdens the Puppet Master of that "tedious job", allowing the PM to process the commands given to him, i.e. without freezing the UI, which accomplishes the desired interactive model - command line.
 
 %------------------------------------------------------------------------- 
 \SubSection{Overview}
 
+At the beginning of this section we stated that our design provided "a highly flexible and scalable environment".
 
+\textbf{How do we achieve flexibility?} Looking at the Architecture is easy to find this quality, the Slave creation example shows it clearly.
 
-
-%------------------------------------------------------------------------- 
-\SubSection{Nop}
-Wherever Times is specified, Times Roman may also be used. If neither is 
-available on your word processor, please use the font closest in 
-appearance to Times that you have access to.
-
-MAIN TITLE. Center the title 1-3/8 inches (3.49 cm) from the top edge of 
-the first page. The title should be in Times 14-point, boldface type. 
-Capitalize the first letter of nouns, pronouns, verbs, adjectives, and 
-adverbs; do not capitalize articles, coordinate conjunctions, or 
-prepositions (unless the title begins with such a word). Leave two blank 
-lines after the title.
-
-AUTHOR NAME(s) and AFFILIATION(s) are to be centered beneath the title 
-and printed in Times 12-point, non-boldface type. This information is to 
-be followed by two blank lines.
-
-The ABSTRACT and MAIN TEXT are to be in a two-column format. 
-
-MAIN TEXT. Type main text in 10-point Times, single-spaced. Do NOT use 
-double-spacing. All paragraphs should be indented 1 pica (approx. 1/6 
-inch or 0.422 cm). Make sure your text is fully justified---that is, 
-flush left and flush right. Please do not place any additional blank 
-lines between paragraphs. Figure and table captions should be 10-point 
-Helvetica boldface type as in
-\begin{figure}[h]
-   \caption{Example of caption.}
-\end{figure}
-
-\noindent Long captions should be set as in 
-\begin{figure}[h] 
-   \caption{Example of long caption requiring more than one line. It is 
-     not typed centered but aligned on both sides and indented with an 
-     additional margin on both sides of 1~pica.}
-\end{figure}
-
-\noindent Callouts should be 9-point Helvetica, non-boldface type. 
-Initially capitalize only the first word of section titles and first-, 
-second-, and third-order headings.
-
-FIRST-ORDER HEADINGS. (For example, {\large \bf 1. Introduction}) 
-should be Times 12-point boldface, initially capitalized, flush left, 
-with one blank line before, and one blank line after.
-
-SECOND-ORDER HEADINGS. (For example, {\elvbf 1.1. Database elements}) 
-should be Times 11-point boldface, initially capitalized, flush left, 
-with one blank line before, and one after. If you require a third-order 
-heading (we discourage it), use 10-point Times, boldface, initially 
-capitalized, flush left, preceded by one blank line, followed by a period 
-and your text on the same line..
-
-%------------------------------------------------------------------------- 
-\SubSection{Footnotes}
-
-Please use footnotes sparingly%
-\footnote
-   {%
-     Or, better still, try to avoid footnotes altogether.  To help your 
-     readers, avoid using footnotes altogether and include necessary 
-     peripheral observations in the text (within parentheses, if you 
-     prefer, as in this sentence).
-   }
-and place them at the bottom of the column on the page on which they are 
-referenced. Use Times 8-point type, single-spaced.
+\textbf{How do we achieve scalability\footnote{%
+		Scalability of code not performance.
+	} 
+	?} Well, we can obviously see that adding anything new to the domain of the problem is trivial. Imagine that you want to add a Byzantine State, you simply inherit State and when the Puppet Master requires the Slave to switch the state there is no modification of code, besides creating a new state. This reasoning also, applies to Importing, Processing and Routing types.
 
 
 %------------------------------------------------------------------------- 
-\SubSection{References}
+\Section{Solution}
 
-List and number all bibliographical references in 9-point Times, 
-single-spaced, at the end of your paper. When referenced in the text, 
-enclose the citation number in square brackets, for example~\cite{ex1}. 
-Where appropriate, include the name(s) of editors of referenced books.
+This section is divided in three logical partitions, which obey the fault tolerance semantics: at-most-once, at-least-once and exactly-once. Notice that having at-most-once grants a basic solution to the problem and that the other semantics are just increments of the preceding one. Also, we will not be specific about all the operations on the domain, we will try to focus on the important things. The following glossary will help us to reach a common ground:
 
-%------------------------------------------------------------------------- 
-\SubSection{Illustrations, graphs, and photographs}
+\textbf{Dispatch}: orders a Slave to process the tuple that he received as input.
 
-All graphics should be centered. Your artwork must be in place in the 
-article (preferably printed as part of the text rather than pasted up). 
-If you are using photographs and are able to have halftones made at a 
-print shop, use a 100- or 110-line screen. If you must use plain photos, 
-they must be pasted onto your manuscript. Use rubber cement to affix the 
-images in place. Black and white, clear, glossy-finish photos are 
-preferable to color. Supply the best quality photographs and 
-illustrations possible. Penciled lines and very fine lines do not 
-reproduce well. Remember, the quality of the book cannot be better than 
-the originals provided. Do NOT use tape on your pages!
+\textbf{Freeze/Unfreeze}: changes the state to Freeze/Unfreeze respectively.
+
+\textbf{ReplicaUpdate}: sends the processed tuples from the Slave to the Logger.
+
+\textbf{TuplePack}: a data structure, present in Common Types, which carries the sender (Slave Url), a seq id (identifies the pack) and a list of tuples (content). We have an abusive terminology, since sometimes we say tuple and others TuplePack, but in this context they mean the same.
 
 %------------------------------------------------------------------------- 
-\SubSection{Color}
+\SubSection{At-Most-Once}
 
-The use of color on interior pages (that is, pages other
-than the cover) is prohibitively expensive. We publish interior pages in 
-color only when it is specifically requested and budgeted for by the 
-conference organizers. DO NOT SUBMIT COLOR IMAGES IN YOUR 
-PAPERS UNLESS SPECIFICALLY INSTRUCTED TO DO SO.
+This semantic implies that we process a tuple $0..1$ times. Doing such endeavor, gives us the base solution to our problem.
+
+The flow of information and roles between the PM and PCS were well explained in the previous section. So lets assume, that we are already in the first operator. This always imports from a file - in our case the PCS already distributed the tuples among its Slaves. 
+
+When, the PM calls start on a Operator, every Slave starts by calling the dispatch method. First it will try to Import according to its characteristics, it may get its input from the PCS (first operator), file or upstream operator. In the first two cases, if the file wasn't empty, they will import its content, create a TuplePack\footnote
+{%
+	Temporary, because we always create a TuplePack before Route, but since Process has the same signature for a first and regular operator we need it as a dummy.
+} 
+for each of lines read, Process, Route and ReplicaUpdate. In the last case, we don't do nothing, until a upstream operator calls dispatch on us.
+
+After the start call, in a regular operator, depending on the Slave state Freeze or Unfreeze, we will add the job to a queue, sleep for some time\footnote
+{%
+	Give the impression that we are experiencing some difficulties.
+}  
+or we will start doing work. A regular operator follows the same work sequence as a first operator.
+
+The Route happens in a totally asynchronously manner, because of the weakness of the semantic. 
+
+Whatever happens to the tuples in the downstream chain does not matter, since we already achieved the semantic and therefore a basic solution.
 
 %------------------------------------------------------------------------- 
-\SubSection{Symbols}
+\SubSection{At-Least-Once}
 
-If your word processor or typewriter cannot produce Greek letters, 
-mathematical symbols, or other graphical elements, please use 
-pressure-sensitive (self-adhesive) rub-on symbols or letters (available 
-in most stationery stores, art stores, or graphics shops).
+We need to guarantee that a tuple is processed $1..*$ times. To reach this semantic we expanded on the previous one, adding to the asynchronously Routing a Callback. When we route, we basically leave a thread that is responsible for the "faith" of that evocation and we continue with our normal operation. As soon as the call finishes, the thread wakes up to find its result. If we find any kind of problem\footnote
+{%
+	Exception, in our case SocketException is a crash and SlowException is a Slave that is experiencing problems - frozen.
+}   
+it means that it failed, so we try again until we tried every Slave on the downstream. 
 
-%------------------------------------------------------------------------ 
+This guarantees that a tuple reaches at least one Slave in the downstream, therefore matching the requirements needed to this semantic.
+
+
+%------------------------------------------------------------------------- 
+\SubSection{Exactly-Once}
+
+We want to assure that a tuple only gets processed $1$ time. Definitely the hardest of them all, because we need need to synchronize the state between the stateful processing Slaves, inside the same Operator. Race conditions will arise due to the nature of the system (parallel processing system). So, solving this conditions is key to match the requirements of the semantic. 
+
+To solve such competition for "resources", we need to restrict the access to shared resources - TuplePacks, avoid duplicates on the chain resulting from frozen Slaves becoming unfrozen and share state between the stateful replicas in the same operator.
+
+To solve the first problem we devised a simple solution, which only allows one Slave to do work at a given time - using locks. So, when the dispatch is called in a Slave, the first thing that he does is gather responses by \textit{TryToPurpose} a input (TuplePack) to all of his siblings\footnote
+{%
+	The other Slaves of the same Operator.
+}   
+. We can only advance to dispatch a tuple if every sibling agrees with the input, it can happen that a Slave has no responses, either because he has no siblings or all are dead/frozen, and in that case he can dispatch. If in that list of responses any of the siblings disagrees signifies that the sibling is doing a dispatching and he isn't ready to respond until it finishes. Since the system is multi threaded, if one of our siblings informs that he already processed the tuple we can abandon that proposal.
+
+After a successful proposal, we start dispatching the input. A Slave starts by asking his siblings if he can Process, \textit{MayIProcess}, which basically asks in a tentative way with a random back-off, to every sibling if he has already seen the TuplePack. To break out of this cycle we need to fulfill one of the two conditions: a sibling has already seen the TuplePack (abandon the input) or the number of "accept" responses that we got are equal to the number of siblings minus the crashed ones (we can advance to process). As you probably figured it out, if we have a sibling frozen, it will try and try until he can contact it. Worth mentioning that this differs from the previous reasoning, since here we want to eliminate duplicates and in the one before we wanted to "cut off" race conditions. 
+
+In order to solve the last problem, we need to share state. Our solution was based on, making sure that after a tuple gets processed, pseudo-routed\footnote
+{%
+	Since we promote a asynchronously routing with callback.
+}   
+and added to the list of seen tuples, was delivered to all the other siblings by, \textit{DestributeTuple}. So, for each sibling alive, i.e. not crashed, we \textit{AnnounceTuple} and make sure that he receives it. Once a sibling collects a announced tuple it checks if he doesn't have seen it, if he didn't he adds it to the list of seen tuples in order to eliminate future duplicates. In addition, a stateful Slave will also process it to synchronize his state with his siblings. This approach also helps with duplicated tuples.
+
+%------------------------------------------------------------------------- 
+\Section{Results}
+
+With this solution we acquired a system capable of doing almost everything proposed, but given the particularities of a failover distributed system we failed in some aspects - if we consider our perspective of a world where everything fails. 
+
+One of the biggest flaws of our project was assuming that only a Slave, from the same operator, is dispatching at the same time. We didn't consider the case, where a Slave may acquire a positive response of his siblings and loose thread context. So imagine that, at the same time, two siblings try to purpose an input. Considering a multi threaded system, the first proposer after acquiring a positive response of all his siblings looses context, since he does not have a local lock to the dispatch we will agree with the second proposer. When the initial proposer thread recuperates, it will also acquire its local lock and start dispatching, resulting in a race condition if both of them have the same tuple.
+
+There are other flaws, but in systems like these is hard to tell which exist, since each run of the system is different from one another. Of course that, the previous flaw will affect the system and in the right conditions will lead to a incoherence. It is also worth mentioning that, our approach also lacks performance, since we stall for every decision.
+
+%------------------------------------------------------------------------- 
+\Section{Implementation Notes}
+
+Our solution was developed in C\#. We used remoting to establish the communication between the PM-PCS and PM-Operators. The asynchronous routing was achieved with a delegate with a callback. The synchronous access to shared resources inside the same slave, was accomplished with regular lock primitives.
+% -----------------------------------------------------------
+
 \section{Evaluation}
 
 We setup some configuration files in order to test our system. Each test 
@@ -313,7 +301,7 @@ Here the output will be slower, as it is expected, since siblings are asked if a
 \subsection{Example in the project description}
 \begin{figure}[h]
 	\centering
-	\includegraphics[scale=0.22]{"Tests/second"}
+	\includegraphics[scale=0.29]{"Tests/second"}
 	\caption{Crash Test} 
 	\label{fig:state}
 \end{figure}
